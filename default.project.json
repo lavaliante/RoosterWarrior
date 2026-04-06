@@ -1,0 +1,81 @@
+{
+  "name": "RoosterWarrior",
+  "servePort": 34872,
+  "globIgnorePaths": [
+    "**/*.remote.json"
+  ],
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Remotes": {
+        "$className": "Folder",
+        "RoosterAttack": {
+          "$className": "RemoteEvent"
+        },
+        "RoosterHitConfirm": {
+          "$className": "RemoteEvent"
+        },
+        "CharacterSelect": {
+          "$className": "RemoteEvent"
+        },
+        "UpgradePurchase": {
+          "$className": "RemoteEvent"
+        }
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "$path": "src/ServerScriptService"
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "$path": "src/StarterPlayer/StarterPlayerScripts"
+      }
+    },
+    "Workspace": {
+      "$className": "Workspace",
+      "Baseplate": {
+        "$className": "Part",
+        "$properties": {
+          "Anchored": true,
+          "Color": [
+            0.231373,
+            0.247059,
+            0.27451
+          ],
+          "Locked": true,
+          "Material": "Slate",
+          "Position": [
+            0,
+            -10,
+            0
+          ],
+          "Size": [
+            512,
+            20,
+            512
+          ]
+        }
+      }
+    },
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "Ambient": [
+          0.45,
+          0.45,
+          0.48
+        ],
+        "Brightness": 4,
+        "ClockTime": 13.5,
+        "EnvironmentDiffuseScale": 0.5,
+        "EnvironmentSpecularScale": 0.45,
+        "GlobalShadows": true,
+        "Technology": "Future"
+      }
+    }
+  }
+}

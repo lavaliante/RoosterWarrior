@@ -7,9 +7,11 @@ local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local remotesFolder = ReplicatedStorage:WaitForChild("Remotes")
+local configFolder = ReplicatedStorage:WaitForChild("Config")
 local attackRemote = remotesFolder:WaitForChild("RoosterAttack")
 local hitConfirmRemote = remotesFolder:WaitForChild("RoosterHitConfirm")
 local playerGui = player:WaitForChild("PlayerGui")
+<<<<<<< HEAD
 
 local ATTACKS = {
 	Peck = {
@@ -78,11 +80,27 @@ local CHARACTER_ATTACK_MODIFIERS = {
 		},
 	},
 }
+=======
+local AttackConfig = require(configFolder:WaitForChild("AttackConfig"))
+local MOBILE_COOLDOWN_TICK = 0.03
+>>>>>>> f82582acfdef0bdb28aace684803feb15eafd14e
 
 local attackReadyTimes = {
 	Peck = 0,
 	Scratch = 0,
 }
+
+if player:GetAttribute("TutorialPeckLearned") == nil then
+	player:SetAttribute("TutorialPeckLearned", false)
+end
+
+if player:GetAttribute("TutorialScratchLearned") == nil then
+	player:SetAttribute("TutorialScratchLearned", false)
+end
+
+if player:GetAttribute("CombatTutorialComplete") == nil then
+	player:SetAttribute("CombatTutorialComplete", false)
+end
 
 local tryAttack
 local mobileButtons = {}
@@ -92,23 +110,7 @@ local function getSelectedRooster()
 end
 
 local function getAttackConfig(attackName)
-	local baseConfig = ATTACKS[attackName]
-
-	if not baseConfig then
-		return nil
-	end
-
-	local config = table.clone(baseConfig)
-	local roosterModifiers = CHARACTER_ATTACK_MODIFIERS[getSelectedRooster()]
-	local attackModifiers = roosterModifiers and roosterModifiers[attackName]
-
-	if attackModifiers then
-		for key, value in pairs(attackModifiers) do
-			config[key] = value
-		end
-	end
-
-	return config
+	return AttackConfig.GetClientAttackConfig(getSelectedRooster(), attackName)
 end
 
 local function createAttackButton(parent, name, text, position, color, size, textSize)
@@ -264,7 +266,7 @@ local function startMobileCooldown(attackName, duration)
 				break
 			end
 
-			task.wait()
+			task.wait(MOBILE_COOLDOWN_TICK)
 		end
 
 		if token ~= entry.Token then
@@ -358,6 +360,48 @@ local function setupMobileButtons()
 	scratchButton.Activated:Connect(function()
 		tryAttack("Scratch")
 	end)
+end
+
+local function setupKeyboardHint()
+	if UserInputService.TouchEnabled then
+		return
+	end
+
+	local existingGui = playerGui:FindFirstChild("AttackControlsGui")
+
+	if existingGui then
+		existingGui:Destroy()
+	end
+
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "AttackControlsGui"
+	screenGui.ResetOnSpawn = false
+	screenGui.IgnoreGuiInset = false
+	screenGui.Parent = playerGui
+
+	local hintLabel = Instance.new("TextLabel")
+	hintLabel.Name = "HintLabel"
+	hintLabel.AnchorPoint = Vector2.new(0.5, 1)
+	hintLabel.Position = UDim2.new(0.5, 0, 1, -18)
+	hintLabel.Size = UDim2.new(0, 240, 0, 22)
+	hintLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+	hintLabel.BackgroundTransparency = 0.22
+	hintLabel.BorderSizePixel = 0
+	hintLabel.Font = Enum.Font.GothamBold
+	hintLabel.Text = "LMB / F: Peck    RMB / G: Scratch"
+	hintLabel.TextColor3 = Color3.fromRGB(255, 243, 176)
+	hintLabel.TextSize = 13
+	hintLabel.Parent = screenGui
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(1, 0)
+	corner.Parent = hintLabel
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(255, 215, 90)
+	stroke.Thickness = 1.5
+	stroke.Transparency = 0.2
+	stroke.Parent = hintLabel
 end
 
 local function createAttackPulse(character, attackConfig)
@@ -599,6 +643,16 @@ tryAttack = function(attackName)
 	end
 	doLocalAttack(attackName)
 
+	if attackName == "Peck" then
+		player:SetAttribute("TutorialPeckLearned", true)
+	elseif attackName == "Scratch" then
+		player:SetAttribute("TutorialScratchLearned", true)
+	end
+
+	if player:GetAttribute("TutorialPeckLearned") and player:GetAttribute("TutorialScratchLearned") then
+		player:SetAttribute("CombatTutorialComplete", true)
+	end
+
 	local character = player.Character
 	if character then
 		local tickName = attackName .. "Tick"
@@ -618,6 +672,10 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
 		tryAttack("Peck")
 	elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
 		tryAttack("Scratch")
+	elseif input.KeyCode == Enum.KeyCode.F then
+		tryAttack("Peck")
+	elseif input.KeyCode == Enum.KeyCode.G then
+		tryAttack("Scratch")
 	end
 end)
 
@@ -632,3 +690,7 @@ hitConfirmRemote.OnClientEvent:Connect(function(attackName, hitPosition)
 end)
 
 setupMobileButtons()
+setupKeyboardHint()
+
+
+

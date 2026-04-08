@@ -8,6 +8,10 @@
     "$className": "DataModel",
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
+      "Config": {
+        "$className": "Folder",
+        "$path": "src/ReplicatedStorage/Config"
+      },
       "Remotes": {
         "$className": "Folder",
         "RoosterAttack": {

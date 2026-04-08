@@ -1,13 +1,17 @@
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local remotesFolder = ReplicatedStorage:WaitForChild("Remotes")
+local configFolder = ReplicatedStorage:WaitForChild("Config")
 local characterSelectRemote = remotesFolder:WaitForChild("CharacterSelect")
+local CharacterConfig = require(configFolder:WaitForChild("CharacterConfig"))
 
 local CHARACTER_STORE = DataStoreService:GetDataStore("PlayerCharacter_v1")
 local SAVE_RETRY_COUNT = 3
 local SAVE_RETRY_DELAY = 1
+<<<<<<< HEAD
 
 local CHARACTERS = {
 	Kenchi = {
@@ -43,6 +47,9 @@ local CHARACTERS = {
 		TailTipColor = BrickColor.new("Crimson"),
 	},
 }
+=======
+local ROOSTER_SWAP_COOLDOWN = 2
+>>>>>>> f82582acfdef0bdb28aace684803feb15eafd14e
 
 local saveDebounces = {}
 
@@ -51,7 +58,7 @@ local function getCharacterDataKey(player)
 end
 
 local function getCharacterConfig(characterName)
-	return CHARACTERS[characterName] or CHARACTERS.Kenchi
+	return CharacterConfig.Get(characterName)
 end
 
 local function clearOldMorph(character)
@@ -249,10 +256,10 @@ local function loadSelectedCharacter(player)
 		return CHARACTER_STORE:GetAsync(getCharacterDataKey(player))
 	end)
 
-	if success and type(storedCharacter) == "string" and CHARACTERS[storedCharacter] then
+	if success and type(storedCharacter) == "string" and CharacterConfig.IsValid(storedCharacter) then
 		applyCharacterAttributes(player, storedCharacter)
 	else
-		applyCharacterAttributes(player, "Kenchi")
+		applyCharacterAttributes(player, CharacterConfig.DefaultCharacterName)
 	end
 end
 
@@ -316,22 +323,29 @@ local function onCharacterAdded(player, character)
 end
 
 local function setSelectedCharacter(player, characterName)
-	if type(characterName) ~= "string" or not CHARACTERS[characterName] then
-		return
-	end
+    if type(characterName) ~= "string" or not CharacterConfig.IsValid(characterName) then
+        return
+    end
 
-	if player:GetAttribute("SelectedRooster") == characterName then
-		return
-	end
+    if player:GetAttribute("SelectedRooster") == characterName then
+        return
+    end
 
-	applyCharacterAttributes(player, characterName)
-	scheduleSelectionSave(player)
-	applyCharacterMovementStats(player)
+    local now = Workspace:GetServerTimeNow()
+    local availableAt = player:GetAttribute("RoosterSwapAvailableAt") or 0
+    if availableAt > now then
+        return
+    end
 
-	local character = player.Character
-	if character then
-		task.defer(applyRoosterMorph, player, character)
-	end
+    player:SetAttribute("RoosterSwapAvailableAt", now + ROOSTER_SWAP_COOLDOWN)
+    applyCharacterAttributes(player, characterName)
+    scheduleSelectionSave(player)
+    applyCharacterMovementStats(player)
+
+    local character = player.Character
+    if character then
+        task.defer(applyRoosterMorph, player, character)
+    end
 end
 
 characterSelectRemote.OnServerEvent:Connect(function(player, characterName)
@@ -339,6 +353,7 @@ characterSelectRemote.OnServerEvent:Connect(function(player, characterName)
 end)
 
 Players.PlayerAdded:Connect(function(player)
+	player:SetAttribute("RoosterSwapAvailableAt", 0)
 	loadSelectedCharacter(player)
 	player.CharacterAdded:Connect(function(character)
 		onCharacterAdded(player, character)
@@ -346,6 +361,9 @@ Players.PlayerAdded:Connect(function(player)
 end)
 
 for _, player in ipairs(Players:GetPlayers()) do
+	if player:GetAttribute("RoosterSwapAvailableAt") == nil then
+		player:SetAttribute("RoosterSwapAvailableAt", 0)
+	end
 	loadSelectedCharacter(player)
 	player.CharacterAdded:Connect(function(character)
 		onCharacterAdded(player, character)
@@ -366,3 +384,7 @@ game:BindToClose(function()
 		saveSelectedCharacter(player)
 	end
 end)
+
+
+
+

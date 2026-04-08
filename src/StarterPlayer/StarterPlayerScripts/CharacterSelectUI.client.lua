@@ -2,11 +2,16 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local remotesFolder = ReplicatedStorage:WaitForChild("Remotes")
+local configFolder = ReplicatedStorage:WaitForChild("Config")
 local characterSelectRemote = remotesFolder:WaitForChild("CharacterSelect")
+local CharacterConfig = require(configFolder:WaitForChild("CharacterConfig"))
+local CHARACTERS = CharacterConfig.List
 
+<<<<<<< HEAD
 local CHARACTERS = {
 	{
 		Name = "Kenchi",
@@ -23,6 +28,9 @@ local CHARACTERS = {
 		Color = Color3.fromRGB(255, 120, 120),
 	},
 }
+=======
+local cooldownRefreshToken = 0
+>>>>>>> f82582acfdef0bdb28aace684803feb15eafd14e
 
 local function createLabel(parent, position, size, font, textSize, color, text)
 	local label = Instance.new("TextLabel")
@@ -102,13 +110,13 @@ local function createCharacterButton(parent, characterInfo, isMobile)
 	corner.Parent = button
 
 	local stroke = Instance.new("UIStroke")
-	stroke.Color = characterInfo.Color
+	stroke.Color = characterInfo.ThemeColor
 	stroke.Thickness = 2
 	stroke.Parent = button
 
 	createLabel(button, UDim2.new(0, 10, 0, isMobile and 5 or 7), UDim2.new(1, -20, 0, 16), Enum.Font.GothamBold, isMobile and 12 or 15, Color3.fromRGB(255, 255, 255), characterInfo.Name)
 	createLabel(button, UDim2.new(0, 10, 0, isMobile and 20 or 24), UDim2.new(1, -20, 0, 12), Enum.Font.Gotham, isMobile and 9 or 12, Color3.fromRGB(210, 210, 210), characterInfo.Subtitle)
-	local statusLabel = createLabel(button, UDim2.new(0, 10, 0, isMobile and 33 or 40), UDim2.new(1, -20, 0, 14), Enum.Font.GothamBold, isMobile and 9 or 12, characterInfo.Color, isMobile and (characterInfo.MobileStats or characterInfo.Stats) or characterInfo.Stats)
+	local statusLabel = createLabel(button, UDim2.new(0, 10, 0, isMobile and 33 or 40), UDim2.new(1, -20, 0, 14), Enum.Font.GothamBold, isMobile and 9 or 12, characterInfo.ThemeColor, isMobile and (characterInfo.MobileStats or characterInfo.Stats) or characterInfo.Stats)
 
 	return button, stroke, statusLabel
 end
@@ -188,7 +196,7 @@ local function createCharacterGui()
 			Button = button,
 			Stroke = entryStroke,
 			Status = statusLabel,
-			Color = characterInfo.Color,
+			Color = characterInfo.ThemeColor,
 			Stats = characterInfo.Stats,
 			MobileStats = characterInfo.MobileStats or characterInfo.Stats,
 		}
@@ -200,24 +208,58 @@ end
 local function connectCharacterUi()
 	local entries, container, isMobile, setOpen = createCharacterGui()
 
+	local function getSwapRemaining()
+		local availableAt = player:GetAttribute("RoosterSwapAvailableAt") or 0
+		return math.max(0, availableAt - Workspace:GetServerTimeNow())
+	end
+
 	local function refresh()
 		local selectedRooster = player:GetAttribute("SelectedRooster") or "Kenchi"
+		local remaining = getSwapRemaining()
+		local cooldownActive = remaining > 0.05
 
 		for roosterName, entry in pairs(entries) do
-			if roosterName == selectedRooster then
+			local isSelected = roosterName == selectedRooster
+			entry.Button.Active = not cooldownActive
+			entry.Button.AutoButtonColor = not cooldownActive
+			entry.Button.BackgroundTransparency = cooldownActive and 0.22 or 0.08
+
+			if isSelected then
 				entry.Stroke.Thickness = 3
 				entry.Status.Text = isMobile and "Selected" or "Selected  |  " .. entry.Stats
 				entry.Status.TextColor3 = entry.Color
+			elseif cooldownActive then
+				entry.Stroke.Thickness = 2
+				entry.Status.Text = string.format("Ready in %.1fs", remaining)
+				entry.Status.TextColor3 = Color3.fromRGB(255, 221, 92)
 			else
 				entry.Stroke.Thickness = 2
 				entry.Status.Text = isMobile and entry.MobileStats or entry.Stats
 				entry.Status.TextColor3 = entry.Color
 			end
 		end
+
+		cooldownRefreshToken += 1
+		local token = cooldownRefreshToken
+		if cooldownActive then
+			task.spawn(function()
+				while token == cooldownRefreshToken and getSwapRemaining() > 0.05 do
+					task.wait(0.1)
+				end
+
+				if token == cooldownRefreshToken then
+					refresh()
+				end
+			end)
+		end
 	end
 
 	for roosterName, entry in pairs(entries) do
 		entry.Button.Activated:Connect(function()
+			if getSwapRemaining() > 0.05 then
+				return
+			end
+
 			characterSelectRemote:FireServer(roosterName)
 			if isMobile then
 				setOpen(false)
@@ -226,7 +268,9 @@ local function connectCharacterUi()
 	end
 
 	player:GetAttributeChangedSignal("SelectedRooster"):Connect(refresh)
+	player:GetAttributeChangedSignal("RoosterSwapAvailableAt"):Connect(refresh)
 	refresh()
 end
 
 connectCharacterUi()
+

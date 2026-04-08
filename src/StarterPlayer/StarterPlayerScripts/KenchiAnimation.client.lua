@@ -4,12 +4,14 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
 local ATTACK_FLAP_DURATION = 0.22
+local ANIMATION_UPDATE_INTERVAL = 1 / 30
 
 local activeConnection
 local activeTrack = {
 	lastPeck = 0,
 	lastScratch = 0,
 }
+local animationElapsed = 0
 
 local function applyJointC0(joint, baseC0, offset)
 	if joint and joint.Parent then
@@ -65,8 +67,16 @@ local function startAnimation(character)
 	}
 
 	hookAttackTracking(character)
+	animationElapsed = 0
 
-	activeConnection = RunService.RenderStepped:Connect(function()
+	activeConnection = RunService.RenderStepped:Connect(function(deltaTime)
+		animationElapsed += deltaTime
+		if animationElapsed < ANIMATION_UPDATE_INTERVAL then
+			return
+		end
+
+		animationElapsed = 0
+
 		if not character.Parent or humanoid.Health <= 0 then
 			return
 		end

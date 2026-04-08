@@ -1,9 +1,11 @@
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local MISSION_FEATHER_REWARD = 10
 local MISSION_RESET_DELAY = 2.5
 
+<<<<<<< HEAD
 local MISSION_DEFINITIONS = {
 	{
 		Id = "DefeatDemons",
@@ -35,13 +37,30 @@ local MISSION_DEFINITIONS = {
 	},
 }
 
+=======
+local chapterQuestConfig = require(ReplicatedStorage:WaitForChild("Config"):WaitForChild("ChapterQuestConfig"))
+>>>>>>> f82582acfdef0bdb28aace684803feb15eafd14e
 local trackedEnemies = {}
 local waveConnections = {}
+local talkConnections = {}
+local worldWaveConnections = {}
 
-local function getMissionDefinition(index)
-	local missionCount = #MISSION_DEFINITIONS
-	local normalizedIndex = ((index - 1) % missionCount) + 1
-	return MISSION_DEFINITIONS[normalizedIndex], normalizedIndex
+local waveState = Workspace:WaitForChild("WaveState")
+local globalWaveNumberValue = waveState:WaitForChild("WaveNumber")
+local globalAliveEnemiesValue = waveState:WaitForChild("AliveEnemies")
+local globalCountdownActiveValue = waveState:WaitForChild("CountdownActive")
+
+local function getQuestDefinition(index)
+	local quests = chapterQuestConfig.Quests
+	if index < 1 then
+		return quests[1], 1
+	end
+
+	if index > #quests then
+		return nil, index
+	end
+
+	return quests[index], index
 end
 
 local function getOrCreateMissionFolder(player)
@@ -53,84 +72,93 @@ local function getOrCreateMissionFolder(player)
 		missionFolder.Parent = player
 	end
 
-	local missionIndex = missionFolder:FindFirstChild("MissionIndex")
+	local values = {
+		{ ClassName = "IntValue", Name = "MissionIndex", Default = 1 },
+		{ ClassName = "StringValue", Name = "MissionId", Default = "" },
+		{ ClassName = "StringValue", Name = "MissionTitle", Default = chapterQuestConfig.Quests[1].Title },
+		{ ClassName = "IntValue", Name = "MissionProgress", Default = 0 },
+		{ ClassName = "IntValue", Name = "MissionTarget", Default = 0 },
+		{ ClassName = "BoolValue", Name = "MissionComplete", Default = false },
+		{ ClassName = "StringValue", Name = "ChapterId", Default = chapterQuestConfig.ChapterId },
+		{ ClassName = "StringValue", Name = "ChapterTitle", Default = chapterQuestConfig.ChapterTitle },
+		{ ClassName = "BoolValue", Name = "CampaignComplete", Default = false },
+	}
 
-	if not missionIndex then
-		missionIndex = Instance.new("IntValue")
-		missionIndex.Name = "MissionIndex"
-		missionIndex.Value = 1
-		missionIndex.Parent = missionFolder
+	local created = { Folder = missionFolder }
+
+	for _, valueInfo in ipairs(values) do
+		local valueObject = missionFolder:FindFirstChild(valueInfo.Name)
+		if not valueObject then
+			valueObject = Instance.new(valueInfo.ClassName)
+			valueObject.Name = valueInfo.Name
+			valueObject.Value = valueInfo.Default
+			valueObject.Parent = missionFolder
+		end
+		created[valueInfo.Name] = valueObject
 	end
 
-	local missionId = missionFolder:FindFirstChild("MissionId")
-
-	if not missionId then
-		missionId = Instance.new("StringValue")
-		missionId.Name = "MissionId"
-		missionId.Value = ""
-		missionId.Parent = missionFolder
-	end
-
-	local missionTitle = missionFolder:FindFirstChild("MissionTitle")
-
-	if not missionTitle then
-		missionTitle = Instance.new("StringValue")
-		missionTitle.Name = "MissionTitle"
-		missionTitle.Value = MISSION_DEFINITIONS[1].Title
-		missionTitle.Parent = missionFolder
-	end
-
-	local missionProgress = missionFolder:FindFirstChild("MissionProgress")
-
-	if not missionProgress then
-		missionProgress = Instance.new("IntValue")
-		missionProgress.Name = "MissionProgress"
-		missionProgress.Value = 0
-		missionProgress.Parent = missionFolder
-	end
-
-	local missionTarget = missionFolder:FindFirstChild("MissionTarget")
-
-	if not missionTarget then
-		missionTarget = Instance.new("IntValue")
-		missionTarget.Name = "MissionTarget"
-		missionTarget.Value = 0
-		missionTarget.Parent = missionFolder
-	end
-
-	local missionComplete = missionFolder:FindFirstChild("MissionComplete")
-
-	if not missionComplete then
-		missionComplete = Instance.new("BoolValue")
-		missionComplete.Name = "MissionComplete"
-		missionComplete.Value = false
-		missionComplete.Parent = missionFolder
-	end
-
-	return missionFolder, missionIndex, missionId, missionTitle, missionProgress, missionTarget, missionComplete
+	return created
 end
 
-local function applyMissionDefinition(player, definition, missionIndexValue)
-	local _, missionIndex, missionId, missionTitle, missionProgress, missionTarget, missionComplete = getOrCreateMissionFolder(player)
+local function getVillagersSpokenTo(player)
+	local spokenTo = player:GetAttribute("VillagersSpokenTo")
+	if type(spokenTo) ~= "number" then
+		return 0
+	end
+
+	return spokenTo
+end
+
+local function isTargetWaveCleared(targetWave)
+	return globalWaveNumberValue.Value >= targetWave
+		and globalAliveEnemiesValue.Value <= 0
+		and globalCountdownActiveValue.Value == false
+end
+
+local function completeCampaign(player)
+	local missionData = getOrCreateMissionFolder(player)
+	missionData.CampaignComplete.Value = true
+	missionData.MissionId.Value = "ChapterComplete"
+	missionData.MissionTitle.Value = chapterQuestConfig.CompletionDescription
+	missionData.MissionProgress.Value = 1
+	missionData.MissionTarget.Value = 1
+	missionData.MissionComplete.Value = true
+end
+
+local function applyQuestDefinition(player, definition, missionIndexValue)
+	local missionData = getOrCreateMissionFolder(player)
 	local waveValue = player:FindFirstChild("Wave")
 
-	missionIndex.Value = missionIndexValue
-	missionId.Value = definition.Id
-	missionTitle.Value = definition.Title
-	missionTarget.Value = definition.Target
-	missionComplete.Value = false
+	missionData.ChapterId.Value = chapterQuestConfig.ChapterId
+	missionData.ChapterTitle.Value = chapterQuestConfig.ChapterTitle
+	missionData.MissionIndex.Value = missionIndexValue
+	missionData.MissionId.Value = definition.Id
+	missionData.MissionTitle.Value = definition.Title
+	missionData.MissionTarget.Value = definition.Target
+	missionData.MissionComplete.Value = false
+	missionData.CampaignComplete.Value = false
 
-	if definition.Id == "ReachWave4" and waveValue then
-		missionProgress.Value = math.clamp(waveValue.Value, 0, definition.Target)
+	if definition.CompletionType == "ReachWave" and waveValue then
+		missionData.MissionProgress.Value = math.clamp(waveValue.Value, 0, definition.Target)
+	elseif definition.CompletionType == "WaveCleared" then
+		missionData.MissionProgress.Value = isTargetWaveCleared(definition.Target) and definition.Target or 0
+	elseif definition.CompletionType == "TalkToVillagers" then
+		missionData.MissionProgress.Value = math.clamp(getVillagersSpokenTo(player), 0, definition.Target)
 	else
-		missionProgress.Value = 0
+		missionData.MissionProgress.Value = 0
 	end
 end
 
 local function advanceToNextMission(player)
-	local _, missionIndex = getOrCreateMissionFolder(player)
-	local nextDefinition, nextIndex = getMissionDefinition(missionIndex.Value + 1)
-	applyMissionDefinition(player, nextDefinition, nextIndex)
+	local missionData = getOrCreateMissionFolder(player)
+	local nextDefinition, nextIndex = getQuestDefinition(missionData.MissionIndex.Value + 1)
+
+	if not nextDefinition then
+		completeCampaign(player)
+		return
+	end
+
+	applyQuestDefinition(player, nextDefinition, nextIndex)
 end
 
 local function resetMissionAfterDelay(player)
@@ -139,26 +167,24 @@ local function resetMissionAfterDelay(player)
 			return
 		end
 
-		local _, missionIndex, _, _, _, _, missionComplete = getOrCreateMissionFolder(player)
-
-		if missionComplete.Value then
-			local nextDefinition, nextIndex = getMissionDefinition(missionIndex.Value + 1)
-			applyMissionDefinition(player, nextDefinition, nextIndex)
+		local missionData = getOrCreateMissionFolder(player)
+		if missionData.MissionComplete.Value and not missionData.CampaignComplete.Value then
+			advanceToNextMission(player)
 		end
 	end)
 end
 
-local function completeMission(player, missionProgress, missionTarget, missionComplete)
-	if missionComplete.Value then
+local function completeMission(player)
+	local missionData = getOrCreateMissionFolder(player)
+	if missionData.MissionComplete.Value then
 		return
 	end
 
-	missionProgress.Value = missionTarget.Value
-	missionComplete.Value = true
+	missionData.MissionProgress.Value = missionData.MissionTarget.Value
+	missionData.MissionComplete.Value = true
 
 	local leaderstats = player:FindFirstChild("leaderstats")
 	local feathers = leaderstats and leaderstats:FindFirstChild("Feathers")
-
 	if feathers then
 		feathers.Value += MISSION_FEATHER_REWARD
 	end
@@ -167,61 +193,101 @@ local function completeMission(player, missionProgress, missionTarget, missionCo
 end
 
 local function recordKillForPlayer(player, enemyModel)
-	local _, _, missionId, _, missionProgress, missionTarget, missionComplete = getOrCreateMissionFolder(player)
-
-	if missionComplete.Value then
+	local missionData = getOrCreateMissionFolder(player)
+	if missionData.MissionComplete.Value or missionData.CampaignComplete.Value then
 		return
 	end
 
+	local definition = getQuestDefinition(missionData.MissionIndex.Value)
+	if not definition then
+		return
+	end
+
+	local enemyType = enemyModel:GetAttribute("EnemyType") or enemyModel.Name
 	local shouldCountKill = false
 
-	if missionId.Value == "DefeatDemons" then
+	if definition.CompletionType == "KillAny" then
 		shouldCountKill = true
+<<<<<<< HEAD
 	elseif missionId.Value == "DefeatPurpleDemon" then
 		shouldCountKill = (enemyModel:GetAttribute("EnemyType") or enemyModel.Name) == "PurpleDemon"
 	elseif missionId.Value == "ScratchFinisher" then
 		shouldCountKill = enemyModel:GetAttribute("LastHitAttackName") == "Scratch"
 	elseif missionId.Value == "KeijukeHunter" then
 		shouldCountKill = player:GetAttribute("SelectedRooster") == "Keijuke"
+=======
+	elseif definition.CompletionType == "KillEnemyType" then
+		shouldCountKill = enemyType == definition.EnemyType
+	elseif definition.CompletionType == "KillWithAttack" then
+		shouldCountKill = enemyModel:GetAttribute("LastHitAttackName") == definition.AttackName
+>>>>>>> f82582acfdef0bdb28aace684803feb15eafd14e
 	end
 
 	if not shouldCountKill then
 		return
 	end
 
-	missionProgress.Value = math.min(missionProgress.Value + 1, missionTarget.Value)
-
-	if missionProgress.Value >= missionTarget.Value then
-		completeMission(player, missionProgress, missionTarget, missionComplete)
+	missionData.MissionProgress.Value = math.min(missionData.MissionProgress.Value + 1, missionData.MissionTarget.Value)
+	if missionData.MissionProgress.Value >= missionData.MissionTarget.Value then
+		completeMission(player)
 	end
 end
 
 local function awardMissionProgress(enemyModel)
 	local lastHitUserId = enemyModel:GetAttribute("LastHitPlayerUserId")
-
 	if type(lastHitUserId) ~= "number" or lastHitUserId <= 0 then
 		return
 	end
 
 	local player = Players:GetPlayerByUserId(lastHitUserId)
-
 	if player then
 		recordKillForPlayer(player, enemyModel)
 	end
 end
 
 local function refreshWaveMissionProgress(player)
-	local _, _, missionId, _, missionProgress, missionTarget, missionComplete = getOrCreateMissionFolder(player)
+	local missionData = getOrCreateMissionFolder(player)
 	local waveValue = player:FindFirstChild("Wave")
-
-	if missionId.Value ~= "ReachWave4" or not waveValue or missionComplete.Value then
+	if missionData.MissionComplete.Value or missionData.CampaignComplete.Value then
 		return
 	end
 
-	missionProgress.Value = math.clamp(waveValue.Value, 0, missionTarget.Value)
+	local definition = getQuestDefinition(missionData.MissionIndex.Value)
+	if not definition then
+		return
+	end
 
-	if missionProgress.Value >= missionTarget.Value then
-		completeMission(player, missionProgress, missionTarget, missionComplete)
+	if definition.CompletionType == "ReachWave" then
+		if not waveValue then
+			return
+		end
+
+		missionData.MissionProgress.Value = math.clamp(waveValue.Value, 0, missionData.MissionTarget.Value)
+		if missionData.MissionProgress.Value >= missionData.MissionTarget.Value then
+			completeMission(player)
+		end
+	elseif definition.CompletionType == "WaveCleared" then
+		missionData.MissionProgress.Value = isTargetWaveCleared(definition.Target) and missionData.MissionTarget.Value or 0
+		if missionData.MissionProgress.Value >= missionData.MissionTarget.Value then
+			completeMission(player)
+		end
+	end
+end
+
+local function refreshTalkMissionProgress(player)
+	local missionData = getOrCreateMissionFolder(player)
+	if missionData.MissionComplete.Value or missionData.CampaignComplete.Value then
+		return
+	end
+
+	local definition = getQuestDefinition(missionData.MissionIndex.Value)
+	if not definition or definition.CompletionType ~= "TalkToVillagers" then
+		return
+	end
+
+	missionData.MissionProgress.Value = math.clamp(getVillagersSpokenTo(player), 0, missionData.MissionTarget.Value)
+	if missionData.MissionProgress.Value >= missionData.MissionTarget.Value then
+		completeMission(player)
 	end
 end
 
@@ -231,7 +297,6 @@ local function trackEnemy(enemyModel)
 	end
 
 	local humanoid = enemyModel:FindFirstChildOfClass("Humanoid")
-
 	if not humanoid then
 		return
 	end
@@ -254,13 +319,31 @@ local function onWorkspaceChildAdded(instance)
 	end
 end
 
+local function disconnectWorldWaveConnections(player)
+	local connections = worldWaveConnections[player]
+	if not connections then
+		return
+	end
+
+	for _, connection in ipairs(connections) do
+		connection:Disconnect()
+	end
+
+	worldWaveConnections[player] = nil
+end
+
 local function onPlayerAdded(player)
-	local _, missionIndex = getOrCreateMissionFolder(player)
-	local definition, normalizedIndex = getMissionDefinition(missionIndex.Value)
-	applyMissionDefinition(player, definition, normalizedIndex)
+	player:SetAttribute("VillagersSpokenTo", 0)
+
+	local missionData = getOrCreateMissionFolder(player)
+	local definition, normalizedIndex = getQuestDefinition(missionData.MissionIndex.Value)
+	if definition then
+		applyQuestDefinition(player, definition, normalizedIndex)
+	else
+		completeCampaign(player)
+	end
 
 	local waveValue = player:WaitForChild("Wave")
-
 	if waveConnections[player] then
 		waveConnections[player]:Disconnect()
 	end
@@ -269,18 +352,47 @@ local function onPlayerAdded(player)
 		refreshWaveMissionProgress(player)
 	end)
 
+	if talkConnections[player] then
+		talkConnections[player]:Disconnect()
+	end
+
+	talkConnections[player] = player:GetAttributeChangedSignal("VillagersSpokenTo"):Connect(function()
+		refreshTalkMissionProgress(player)
+	end)
+
+	disconnectWorldWaveConnections(player)
+	worldWaveConnections[player] = {
+		globalWaveNumberValue.Changed:Connect(function()
+			refreshWaveMissionProgress(player)
+		end),
+		globalAliveEnemiesValue.Changed:Connect(function()
+			refreshWaveMissionProgress(player)
+		end),
+		globalCountdownActiveValue.Changed:Connect(function()
+			refreshWaveMissionProgress(player)
+		end),
+	}
+
 	refreshWaveMissionProgress(player)
+	refreshTalkMissionProgress(player)
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 
 Players.PlayerRemoving:Connect(function(player)
-	local connection = waveConnections[player]
-
-	if connection then
-		connection:Disconnect()
+	local waveConnection = waveConnections[player]
+	if waveConnection then
+		waveConnection:Disconnect()
 		waveConnections[player] = nil
 	end
+
+	local talkConnection = talkConnections[player]
+	if talkConnection then
+		talkConnection:Disconnect()
+		talkConnections[player] = nil
+	end
+
+	disconnectWorldWaveConnections(player)
 end)
 
 for _, player in ipairs(Players:GetPlayers()) do

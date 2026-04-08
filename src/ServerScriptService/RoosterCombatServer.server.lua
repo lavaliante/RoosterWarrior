@@ -4,8 +4,10 @@ local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
 
 local remotesFolder = ReplicatedStorage:WaitForChild("Remotes")
+local configFolder = ReplicatedStorage:WaitForChild("Config")
 local attackRemote = remotesFolder:WaitForChild("RoosterAttack")
 local hitConfirmRemote = remotesFolder:WaitForChild("RoosterHitConfirm")
+<<<<<<< HEAD
 
 local ATTACKS = {
 	Peck = {
@@ -61,6 +63,9 @@ local CHARACTER_ATTACK_MODIFIERS = {
 		},
 	},
 }
+=======
+local AttackConfig = require(configFolder:WaitForChild("AttackConfig"))
+>>>>>>> f82582acfdef0bdb28aace684803feb15eafd14e
 
 local lastAttackTimes = {}
 
@@ -69,23 +74,7 @@ local function getSelectedRooster(player)
 end
 
 local function getAttackConfig(player, attackName)
-	local baseConfig = ATTACKS[attackName]
-
-	if not baseConfig then
-		return nil
-	end
-
-	local config = table.clone(baseConfig)
-	local roosterModifiers = CHARACTER_ATTACK_MODIFIERS[getSelectedRooster(player)]
-	local attackModifiers = roosterModifiers and roosterModifiers[attackName]
-
-	if attackModifiers then
-		for key, value in pairs(attackModifiers) do
-			config[key] = value
-		end
-	end
-
-	return config
+	return AttackConfig.GetServerAttackConfig(getSelectedRooster(player), attackName)
 end
 
 local function playDemonHitGroan(demonModel, attackName)

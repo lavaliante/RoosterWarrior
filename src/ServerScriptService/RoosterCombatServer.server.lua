@@ -43,7 +43,7 @@ local CHARACTER_ATTACK_MODIFIERS = {
 			HitBurstColor = Color3.fromRGB(255, 166, 92),
 		},
 	},
-	Chico = {
+	Keijuke = {
 		Peck = {
 			Cooldown = 0.48,
 			Damage = 22,

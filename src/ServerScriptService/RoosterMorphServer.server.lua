@@ -26,8 +26,8 @@ local CHARACTERS = {
 		TailColor = BrickColor.new("Cool yellow"),
 		TailTipColor = BrickColor.new("Brick yellow"),
 	},
-	Chico = {
-		DisplayName = "Chico",
+	Keijuke = {
+		DisplayName = "Keijuke",
 		WalkSpeed = 14,
 		JumpPower = 56,
 		HipHeight = 1.65,

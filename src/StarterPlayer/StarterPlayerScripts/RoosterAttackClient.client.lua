@@ -58,7 +58,7 @@ local CHARACTER_ATTACK_MODIFIERS = {
 			SoundPitch = 1.12,
 		},
 	},
-	Chico = {
+	Keijuke = {
 		Peck = {
 			Cooldown = 0.48,
 			LungeSpeed = 42,
@@ -300,8 +300,8 @@ local function setupMobileButtons()
 	local stackFrame = Instance.new("Frame")
 	stackFrame.Name = "AttackStack"
 	stackFrame.AnchorPoint = Vector2.new(1, 1)
-	stackFrame.Position = UDim2.new(1, -146, 1, -176)
-	stackFrame.Size = UDim2.new(0, 150, 0, 150)
+	stackFrame.Position = UDim2.new(1, -132, 1, -162)
+	stackFrame.Size = UDim2.new(0, 132, 0, 132)
 	stackFrame.BackgroundTransparency = 1
 	stackFrame.Parent = screenGui
 
@@ -321,20 +321,20 @@ local function setupMobileButtons()
 		stackFrame,
 		"PeckButton",
 		"Peck",
-		UDim2.new(1, 0, 0, 72),
+		UDim2.new(1, 0, 0, 62),
 		Color3.fromRGB(232, 172, 52),
-		UDim2.new(0, 64, 0, 64),
-		14
+		UDim2.new(0, 58, 0, 58),
+		13
 	)
 
 	local scratchButton, scratchCooldownCover, scratchCooldownText = createAttackButton(
 		stackFrame,
 		"ScratchButton",
 		"Scratch",
-		UDim2.new(0, 72, 1, 0),
+		UDim2.new(0, 62, 1, 0),
 		Color3.fromRGB(214, 110, 66),
-		UDim2.new(0, 72, 0, 72),
-		14
+		UDim2.new(0, 64, 0, 64),
+		13
 	)
 
 	mobileButtons.Peck = {

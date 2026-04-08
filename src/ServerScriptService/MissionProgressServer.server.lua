@@ -28,10 +28,10 @@ local MISSION_DEFINITIONS = {
 		AttackName = "Scratch",
 	},
 	{
-		Id = "ChicoHunter",
-		Title = "Defeat 2 demons as Chico",
+		Id = "KeijukeHunter",
+		Title = "Defeat 2 demons as Keijuke",
 		Target = 2,
-		RoosterName = "Chico",
+		RoosterName = "Keijuke",
 	},
 }
 
@@ -181,8 +181,8 @@ local function recordKillForPlayer(player, enemyModel)
 		shouldCountKill = (enemyModel:GetAttribute("EnemyType") or enemyModel.Name) == "PurpleDemon"
 	elseif missionId.Value == "ScratchFinisher" then
 		shouldCountKill = enemyModel:GetAttribute("LastHitAttackName") == "Scratch"
-	elseif missionId.Value == "ChicoHunter" then
-		shouldCountKill = player:GetAttribute("SelectedRooster") == "Chico"
+	elseif missionId.Value == "KeijukeHunter" then
+		shouldCountKill = player:GetAttribute("SelectedRooster") == "Keijuke"
 	end
 
 	if not shouldCountKill then

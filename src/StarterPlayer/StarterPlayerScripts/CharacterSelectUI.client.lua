@@ -16,7 +16,7 @@ local CHARACTERS = {
 		Color = Color3.fromRGB(255, 221, 112),
 	},
 	{
-		Name = "Chico",
+		Name = "Keijuke",
 		Subtitle = "Heavy bruiser",
 		Stats = "+30 health, +4 damage, slower speed",
 		MobileStats = "+30 HP, +4 DMG",

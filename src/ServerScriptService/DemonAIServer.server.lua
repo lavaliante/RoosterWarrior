@@ -3,182 +3,60 @@ local RunService = game:GetService("RunService")
 local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GROUND_RAY_HEIGHT = 36
 local GROUND_CLEARANCE = 0.1
-
-local ENEMY_CONFIGS = {
-	{
-		Name = "RedDemon",
-		UnlockWave = 1,
-		SpawnPosition = Vector3.new(-18, 8, -30),
-		MaxHealth = 80,
-		MoveSpeed = 24,
-		AggroRange = 110,
-		AttackRange = 6,
-		AttackDamage = 8,
-		AttackCooldown = 1.45,
-		AttackWindup = 0.4,
-		RespawnDelay = 4,
-		DeathCleanupDelay = 2,
-		HipHeight = 2.2,
-		RootSize = Vector3.new(3.2, 3.8, 3),
-		TorsoSize = Vector3.new(3.8, 4.2, 3.2),
-		HeadSize = Vector3.new(2.7, 2.7, 2.7),
-		ArmSize = Vector3.new(1.2, 3.4, 1.2),
-		LegSize = Vector3.new(1.25, 3.5, 1.25),
-		TorsoOffset = Vector3.new(0, 2.45, 0),
-		HeadOffset = Vector3.new(0, 5.7, 0),
-		LeftArmOffset = Vector3.new(-2.15, 2.55, 0),
-		RightArmOffset = Vector3.new(2.15, 2.55, 0),
-		LeftLegOffset = Vector3.new(-0.92, 0.05, 0),
-		RightLegOffset = Vector3.new(0.92, 0.05, 0),
-		TorsoColor = Color3.fromRGB(184, 40, 40),
-		HeadColor = Color3.fromRGB(228, 70, 70),
-		ArmColor = Color3.fromRGB(150, 30, 30),
-		LegColor = Color3.fromRGB(118, 18, 18),
-		AttackHighlightColor = Color3.fromRGB(255, 126, 126),
-		HitVFXColor = Color3.fromRGB(255, 80, 80),
-		DevilStyle = true,
-	},
-	{
-		Name = "BlueDemon",
-		UnlockWave = 2,
-		SpawnPosition = Vector3.new(18, 7, -30),
-		MaxHealth = 95,
-		MoveSpeed = 34,
-		AggroRange = 140,
-		AttackRange = 5.5,
-		AttackDamage = 9,
-		AttackCooldown = 1.05,
-		AttackWindup = 0.24,
-		RespawnDelay = 3.6,
-		DeathCleanupDelay = 1.8,
-		HipHeight = 1.9,
-		RootSize = Vector3.new(2.9, 3.3, 2.8),
-		TorsoSize = Vector3.new(3.2, 3.6, 2.9),
-		HeadSize = Vector3.new(2.3, 2.3, 2.3),
-		ArmSize = Vector3.new(1, 3.1, 1),
-		LegSize = Vector3.new(1.05, 3.2, 1.05),
-		TorsoOffset = Vector3.new(0, 2.1, 0),
-		HeadOffset = Vector3.new(0, 4.9, 0),
-		LeftArmOffset = Vector3.new(-1.95, 2.2, 0),
-		RightArmOffset = Vector3.new(1.95, 2.2, 0),
-		LeftLegOffset = Vector3.new(-0.76, -0.02, 0),
-		RightLegOffset = Vector3.new(0.76, -0.02, 0),
-		TorsoColor = Color3.fromRGB(48, 92, 196),
-		HeadColor = Color3.fromRGB(88, 142, 255),
-		ArmColor = Color3.fromRGB(42, 76, 156),
-		LegColor = Color3.fromRGB(27, 54, 120),
-		AttackHighlightColor = Color3.fromRGB(130, 196, 255),
-		HitVFXColor = Color3.fromRGB(88, 170, 255),
-		DevilStyle = true,
-	},
-	{
-		Name = "GreenDemon",
-		UnlockWave = 3,
-		SpawnPosition = Vector3.new(0, 7.6, -42),
-		MaxHealth = 135,
-		MoveSpeed = 28,
-		AggroRange = 125,
-		AttackRange = 6.2,
-		AttackDamage = 12,
-		AttackCooldown = 1.15,
-		AttackWindup = 0.3,
-		RespawnDelay = 4,
-		DeathCleanupDelay = 2,
-		HipHeight = 2.05,
-		RootSize = Vector3.new(3.5, 3.9, 3.1),
-		TorsoSize = Vector3.new(4.1, 4.4, 3.4),
-		HeadSize = Vector3.new(2.8, 2.8, 2.8),
-		ArmSize = Vector3.new(1.24, 3.6, 1.24),
-		LegSize = Vector3.new(1.3, 3.7, 1.3),
-		TorsoOffset = Vector3.new(0, 2.55, 0),
-		HeadOffset = Vector3.new(0, 6, 0),
-		LeftArmOffset = Vector3.new(-2.25, 2.65, 0),
-		RightArmOffset = Vector3.new(2.25, 2.65, 0),
-		LeftLegOffset = Vector3.new(-0.95, 0.08, 0),
-		RightLegOffset = Vector3.new(0.95, 0.08, 0),
-		TorsoColor = Color3.fromRGB(48, 146, 57),
-		HeadColor = Color3.fromRGB(88, 194, 97),
-		ArmColor = Color3.fromRGB(33, 115, 42),
-		LegColor = Color3.fromRGB(24, 86, 31),
-		AttackHighlightColor = Color3.fromRGB(166, 255, 170),
-		HitVFXColor = Color3.fromRGB(112, 255, 128),
-		DevilStyle = true,
-	},
-	{
-		Name = "PurpleDemon",
-		UnlockWave = 4,
-		SpawnPosition = Vector3.new(-28, 8.4, -44),
-		MaxHealth = 190,
-		MoveSpeed = 30,
-		AggroRange = 135,
-		AttackRange = 6.4,
-		AttackDamage = 16,
-		AttackCooldown = 0.95,
-		AttackWindup = 0.28,
-		RespawnDelay = 4.5,
-		DeathCleanupDelay = 2.2,
-		HipHeight = 2.25,
-		RootSize = Vector3.new(3.9, 4.3, 3.3),
-		TorsoSize = Vector3.new(4.5, 4.8, 3.7),
-		HeadSize = Vector3.new(3.1, 3.1, 3.1),
-		ArmSize = Vector3.new(1.38, 3.9, 1.38),
-		LegSize = Vector3.new(1.5, 3.95, 1.5),
-		TorsoOffset = Vector3.new(0, 2.75, 0),
-		HeadOffset = Vector3.new(0, 6.45, 0),
-		LeftArmOffset = Vector3.new(-2.5, 2.85, 0),
-		RightArmOffset = Vector3.new(2.5, 2.85, 0),
-		LeftLegOffset = Vector3.new(-1.02, 0.16, 0),
-		RightLegOffset = Vector3.new(1.02, 0.16, 0),
-		TorsoColor = Color3.fromRGB(106, 42, 162),
-		HeadColor = Color3.fromRGB(160, 84, 220),
-		ArmColor = Color3.fromRGB(82, 28, 132),
-		LegColor = Color3.fromRGB(62, 18, 98),
-		AttackHighlightColor = Color3.fromRGB(214, 118, 255),
-		HitVFXColor = Color3.fromRGB(214, 118, 255),
-		DevilStyle = true,
-	},
-	{
-		Name = "WhiteDemon",
-		UnlockWave = 5,
-		SpawnPosition = Vector3.new(28, 8.8, -44),
-		MaxHealth = 250,
-		MoveSpeed = 32,
-		AggroRange = 150,
-		AttackRange = 6.8,
-		AttackDamage = 20,
-		AttackCooldown = 0.8,
-		AttackWindup = 0.22,
-		RespawnDelay = 5,
-		DeathCleanupDelay = 2.4,
-		HipHeight = 2.35,
-		RootSize = Vector3.new(4.2, 4.6, 3.5),
-		TorsoSize = Vector3.new(4.8, 5.1, 3.9),
-		HeadSize = Vector3.new(3.25, 3.25, 3.25),
-		ArmSize = Vector3.new(1.46, 4.1, 1.46),
-		LegSize = Vector3.new(1.58, 4.1, 1.58),
-		TorsoOffset = Vector3.new(0, 2.9, 0),
-		HeadOffset = Vector3.new(0, 6.85, 0),
-		LeftArmOffset = Vector3.new(-2.65, 3, 0),
-		RightArmOffset = Vector3.new(2.65, 3, 0),
-		LeftLegOffset = Vector3.new(-1.08, 0.2, 0),
-		RightLegOffset = Vector3.new(1.08, 0.2, 0),
-		TorsoColor = Color3.fromRGB(235, 235, 235),
-		HeadColor = Color3.fromRGB(255, 255, 255),
-		ArmColor = Color3.fromRGB(215, 215, 215),
-		LegColor = Color3.fromRGB(180, 180, 180),
-		AttackHighlightColor = Color3.fromRGB(255, 255, 255),
-		HitVFXColor = Color3.fromRGB(255, 255, 255),
-		DevilStyle = true,
-	},
+local AI_UPDATE_INTERVAL = 1 / 20
+local ENABLE_CIVILIAN_POSSESSION_EVENT = true
+local POSSESSION_MIN_WAVE = 5
+local POSSESSION_MIN_ACTIVE_CIVILIANS = 6
+local POSSESSION_MAX_LOSSES_BEFORE_DISABLE = 1
+local POSSESSION_ELIGIBLE_ENEMIES = {
+	WhiteDemon = true,
+}
+local CIVILIAN_PREFERRED_ENEMIES = {
+	RedDemon = true,
+	BlueDemon = true,
+	PurpleDemon = true,
+	WhiteDemon = true,
 }
 
+local configFolder = ReplicatedStorage:WaitForChild("Config")
+local ENEMY_CONFIGS = require(configFolder:WaitForChild("EnemyConfig"))
+
 local enemyStates = {}
+local possessionUsedByWave = {}
+local getWaveState
+local getCurrentWaveNumber
+local aiUpdateElapsed = 0
+local function getFarmDemonSpawnPosition(defaultPosition)
+	local village = Workspace:FindFirstChild("Village")
+	local spawnFolder = village and village:FindFirstChild("FarmDemonSpawnPoints")
+
+	if spawnFolder then
+		local markers = {}
+		for _, child in ipairs(spawnFolder:GetChildren()) do
+			if child:IsA("BasePart") then
+				table.insert(markers, child)
+			end
+		end
+
+		if #markers > 0 then
+			local marker = markers[math.random(1, #markers)]
+			return marker.Position
+		end
+	end
+
+	return defaultPosition
+end
 
 local function getCivilianFolder()
 	local stateFolder = Workspace:FindFirstChild("CivilianState")
 	return stateFolder and stateFolder:FindFirstChild("Civilians")
+end
+
+local function getProtectionState()
+	return Workspace:FindFirstChild("CivilianProtectionState")
 end
 
 local function createPossessionBurst(position, color)
@@ -206,6 +84,40 @@ local function createPossessionBurst(position, color)
 end
 
 local function tryClaimCivilianHost(config)
+	if not ENABLE_CIVILIAN_POSSESSION_EVENT then
+		return nil
+	end
+
+	if not POSSESSION_ELIGIBLE_ENEMIES[config.Name] then
+		return nil
+	end
+
+	local currentWave = getCurrentWaveNumber()
+
+	if currentWave < POSSESSION_MIN_WAVE then
+		return nil
+	end
+
+	if possessionUsedByWave[currentWave] then
+		return nil
+	end
+
+	local protectionState = getProtectionState()
+	local activeCivilians = protectionState and protectionState:FindFirstChild("ActiveCivilians")
+	local lostThisWave = protectionState and protectionState:FindFirstChild("LostThisWave")
+
+	if not activeCivilians or not lostThisWave then
+		return nil
+	end
+
+	if activeCivilians.Value < POSSESSION_MIN_ACTIVE_CIVILIANS then
+		return nil
+	end
+
+	if lostThisWave.Value > POSSESSION_MAX_LOSSES_BEFORE_DISABLE then
+		return nil
+	end
+
 	local civiliansFolder = getCivilianFolder()
 
 	if not civiliansFolder then
@@ -236,6 +148,7 @@ local function tryClaimCivilianHost(config)
 	end
 
 	host:SetAttribute("IsPossessed", true)
+	possessionUsedByWave[currentWave] = true
 	createPossessionBurst(hostRoot.Position + Vector3.new(0, 3, 0), config.HitVFXColor)
 	local spawnPosition = hostRoot.Position
 	host:Destroy()
@@ -259,11 +172,11 @@ local function getGroundedSpawnPosition(position, rootHeight, ignoreInstances)
 	return position
 end
 
-local function getWaveState()
+getWaveState = function()
 	return workspace:FindFirstChild("WaveState")
 end
 
-local function getCurrentWaveNumber()
+getCurrentWaveNumber = function()
 	local waveState = getWaveState()
 	local waveNumber = waveState and waveState:FindFirstChild("WaveNumber")
 
@@ -455,6 +368,61 @@ local function getNearestPlayer(position, aggroRange)
 	return bestPlayer, bestDistance
 end
 
+local function getNearestCivilian(position, aggroRange)
+	local civiliansFolder = getCivilianFolder()
+
+	if not civiliansFolder then
+		return nil, aggroRange
+	end
+
+	local bestCivilian
+	local bestDistance = aggroRange
+
+	for _, civilian in ipairs(civiliansFolder:GetChildren()) do
+		if civilian:IsA("Model") and civilian:GetAttribute("IsCivilian") and not civilian:GetAttribute("IsPossessed") then
+			local humanoid = civilian:FindFirstChildOfClass("Humanoid")
+			local rootPart = civilian.PrimaryPart or civilian:FindFirstChild("HumanoidRootPart")
+
+			if humanoid and humanoid.Health > 0 and rootPart then
+				local distance = (rootPart.Position - position).Magnitude
+
+				if distance < bestDistance then
+					bestDistance = distance
+					bestCivilian = civilian
+				end
+			end
+		end
+	end
+
+	return bestCivilian, bestDistance
+end
+
+local function getNearestTarget(position, aggroRange, enemyName)
+	local playerTarget, playerDistance = getNearestPlayer(position, aggroRange)
+	local civilianTarget, civilianDistance = getNearestCivilian(position, aggroRange)
+	local prefersCivilians = CIVILIAN_PREFERRED_ENEMIES[enemyName] == true
+
+	if prefersCivilians then
+		if civilianTarget then
+			return civilianTarget, civilianDistance, "Civilian"
+		end
+
+		if playerTarget then
+			return playerTarget, playerDistance, "Player"
+		end
+	else
+		if playerTarget then
+			return playerTarget, playerDistance, "Player"
+		end
+
+		if civilianTarget then
+			return civilianTarget, civilianDistance, "Civilian"
+		end
+	end
+
+	return nil, aggroRange, nil
+end
+
 local function applyJointMotion(rootPart, jointName, baseC0, offsetCFrame)
 	local joint = rootPart:FindFirstChild(jointName)
 
@@ -506,7 +474,7 @@ local function createEnemyModel(config)
 	model:SetAttribute("IsDemonEnemy", true)
 	model:SetAttribute("EnemyType", config.Name)
 
-	local spawnPosition = tryClaimCivilianHost(config) or config.SpawnPosition
+	local spawnPosition = tryClaimCivilianHost(config) or getFarmDemonSpawnPosition(config.SpawnPosition)
 
 	local rootPart = Instance.new("Part")
 	rootPart.Name = "HumanoidRootPart"
@@ -674,15 +642,12 @@ local function ensureEnemy(state)
 	hookEnemyDeath(state)
 end
 
-local function tryAttackPlayer(state, targetPlayer)
+local function tryAttackTarget(state, targetModel, targetHumanoid, targetRoot)
 	local enemyModel = state.Model
 	local demonRoot = enemyModel and enemyModel:FindFirstChild("HumanoidRootPart")
 	local demonHumanoid = enemyModel and enemyModel:FindFirstChildOfClass("Humanoid")
-	local targetCharacter = targetPlayer.Character
-	local targetHumanoid = targetCharacter and targetCharacter:FindFirstChildOfClass("Humanoid")
-	local targetRoot = targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart")
 
-	if not demonRoot or not demonHumanoid or demonHumanoid.Health <= 0 or not targetHumanoid or targetHumanoid.Health <= 0 or not targetRoot then
+	if not demonRoot or not demonHumanoid or demonHumanoid.Health <= 0 or not targetModel or not targetHumanoid or targetHumanoid.Health <= 0 or not targetRoot then
 		return
 	end
 
@@ -705,7 +670,7 @@ local function tryAttackPlayer(state, targetPlayer)
 			return
 		end
 
-		if not targetCharacter.Parent or targetHumanoid.Health <= 0 or not targetRoot.Parent then
+		if not targetModel.Parent or targetHumanoid.Health <= 0 or not targetRoot.Parent then
 			return
 		end
 
@@ -742,7 +707,15 @@ for _, config in ipairs(ENEMY_CONFIGS) do
 	ensureEnemy(state)
 end
 
-RunService.Heartbeat:Connect(function()
+RunService.Heartbeat:Connect(function(deltaTime)
+	aiUpdateElapsed += deltaTime
+
+	if aiUpdateElapsed < AI_UPDATE_INTERVAL then
+		return
+	end
+
+	aiUpdateElapsed = 0
+
 	for _, state in ipairs(enemyStates) do
 		local enemyModel = state.Model
 
@@ -770,17 +743,28 @@ RunService.Heartbeat:Connect(function()
 			continue
 		end
 
-		local targetPlayer, distance = getNearestPlayer(rootPart.Position, state.Config.AggroRange)
+		local target, distance, targetType = getNearestTarget(rootPart.Position, state.Config.AggroRange, state.Config.Name)
 
-		if not targetPlayer then
+		if not target then
 			rootPart.AssemblyLinearVelocity = Vector3.zero
 			continue
 		end
 
-		local targetCharacter = targetPlayer.Character
-		local targetRoot = targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart")
+		local targetModel
+		local targetHumanoid
+		local targetRoot
 
-		if not targetRoot then
+		if targetType == "Player" then
+			targetModel = target.Character
+			targetHumanoid = targetModel and targetModel:FindFirstChildOfClass("Humanoid")
+			targetRoot = targetModel and targetModel:FindFirstChild("HumanoidRootPart")
+		else
+			targetModel = target
+			targetHumanoid = target:FindFirstChildOfClass("Humanoid")
+			targetRoot = target.PrimaryPart or target:FindFirstChild("HumanoidRootPart")
+		end
+
+		if not targetModel or not targetHumanoid or targetHumanoid.Health <= 0 or not targetRoot then
 			continue
 		end
 
@@ -797,7 +781,7 @@ RunService.Heartbeat:Connect(function()
 			rootPart.AssemblyLinearVelocity = Vector3.new(moveDirection.X * state.Config.MoveSpeed, rootPart.AssemblyLinearVelocity.Y, moveDirection.Z * state.Config.MoveSpeed)
 		else
 			rootPart.AssemblyLinearVelocity = Vector3.new(0, rootPart.AssemblyLinearVelocity.Y, 0)
-			tryAttackPlayer(state, targetPlayer)
+			tryAttackTarget(state, targetModel, targetHumanoid, targetRoot)
 		end
 
 		animateEnemy(state, rootPart, isMoving)
@@ -807,3 +791,6 @@ RunService.Heartbeat:Connect(function()
 		end
 	end
 end)
+
+
+

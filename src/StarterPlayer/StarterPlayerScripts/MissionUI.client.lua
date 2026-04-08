@@ -4,6 +4,8 @@ local Workspace = game:GetService("Workspace")
 local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
+local missionRefreshQueued = false
+local waveRefreshQueued = false
 
 local function getPlayerGui()
 	return player:WaitForChild("PlayerGui")
@@ -93,23 +95,25 @@ local function createMissionGui()
 	}
 
 	if isMobile then
-		local container = createContainer(screenGui, UDim2.new(0, 156, 0, 86), UDim2.new(1, -12, 0, 14))
+		local container = createContainer(screenGui, UDim2.new(0, 176, 0, 102), UDim2.new(1, -12, 0, 14))
 
-		local waveLabel = createLabel(container, "WaveLabel", UDim2.new(0, 10, 0, 6), UDim2.new(1, -20, 0, 14), Enum.Font.GothamBold, 12, Color3.fromRGB(255, 243, 176))
-		local waveStatusLabel = createLabel(container, "WaveStatusLabel", UDim2.new(0, 10, 0, 20), UDim2.new(1, -20, 0, 12), Enum.Font.Gotham, 10, Color3.fromRGB(255, 255, 255))
-		local civilianLabel = createLabel(container, "CivilianLabel", UDim2.new(0, 10, 0, 32), UDim2.new(1, -20, 0, 12), Enum.Font.GothamBold, 10, Color3.fromRGB(142, 255, 156))
+		local chapterLabel = createLabel(container, "ChapterLabel", UDim2.new(0, 10, 0, 6), UDim2.new(1, -20, 0, 12), Enum.Font.GothamBold, 10, Color3.fromRGB(255, 221, 92))
+		local waveLabel = createLabel(container, "WaveLabel", UDim2.new(0, 10, 0, 20), UDim2.new(1, -20, 0, 14), Enum.Font.GothamBold, 12, Color3.fromRGB(255, 243, 176))
+		local waveStatusLabel = createLabel(container, "WaveStatusLabel", UDim2.new(0, 10, 0, 34), UDim2.new(1, -20, 0, 12), Enum.Font.Gotham, 10, Color3.fromRGB(255, 255, 255))
+		local civilianLabel = createLabel(container, "CivilianLabel", UDim2.new(0, 10, 0, 46), UDim2.new(1, -20, 0, 12), Enum.Font.GothamBold, 10, Color3.fromRGB(142, 255, 156))
 		local divider = Instance.new("Frame")
 		divider.Name = "Divider"
 		divider.BackgroundColor3 = Color3.fromRGB(255, 215, 90)
 		divider.BackgroundTransparency = 0.35
 		divider.BorderSizePixel = 0
-		divider.Position = UDim2.new(0, 10, 0, 46)
+		divider.Position = UDim2.new(0, 10, 0, 60)
 		divider.Size = UDim2.new(1, -20, 0, 1)
 		divider.Parent = container
 
-		local missionLabel = createLabel(container, "MissionLabel", UDim2.new(0, 10, 0, 51), UDim2.new(1, -20, 0, 11), Enum.Font.Gotham, 10, Color3.fromRGB(255, 255, 255))
-		local progressLabel = createLabel(container, "ProgressLabel", UDim2.new(0, 10, 0, 64), UDim2.new(1, -20, 0, 11), Enum.Font.GothamBold, 11, Color3.fromRGB(98, 255, 111))
+		local missionLabel = createLabel(container, "MissionLabel", UDim2.new(0, 10, 0, 65), UDim2.new(1, -20, 0, 12), Enum.Font.Gotham, 10, Color3.fromRGB(255, 255, 255))
+		local progressLabel = createLabel(container, "ProgressLabel", UDim2.new(0, 10, 0, 79), UDim2.new(1, -20, 0, 12), Enum.Font.GothamBold, 11, Color3.fromRGB(98, 255, 111))
 
+		ui.ChapterLabel = chapterLabel
 		ui.MissionLabel = missionLabel
 		ui.ProgressLabel = progressLabel
 		ui.WaveLabel = waveLabel
@@ -118,23 +122,34 @@ local function createMissionGui()
 		return ui
 	end
 
-	local container = createContainer(screenGui, UDim2.new(0, 250, 0, 90), UDim2.new(1, -20, 0, 108))
+	local container = createContainer(screenGui, UDim2.new(0, 290, 0, 110), UDim2.new(1, -20, 0, 108))
 
 	local titleLabel = createLabel(container, "TitleLabel", UDim2.new(0, 12, 0, 8), UDim2.new(1, -24, 0, 18), Enum.Font.GothamBold, 14, Color3.fromRGB(255, 243, 176))
-	titleLabel.Text = "CURRENT MISSION"
+		
+	local missionLabel = createLabel(container, "MissionLabel", UDim2.new(0, 12, 0, 32), UDim2.new(1, -24, 0, 30), Enum.Font.Gotham, 15, Color3.fromRGB(255, 255, 255))
+	local progressLabel = createLabel(container, "ProgressLabel", UDim2.new(0, 12, 0, 74), UDim2.new(1, -24, 0, 22), Enum.Font.GothamBold, 18, Color3.fromRGB(98, 255, 111))
 
-	local missionLabel = createLabel(container, "MissionLabel", UDim2.new(0, 12, 0, 30), UDim2.new(1, -24, 0, 18), Enum.Font.Gotham, 16, Color3.fromRGB(255, 255, 255))
-	local progressLabel = createLabel(container, "ProgressLabel", UDim2.new(0, 12, 0, 56), UDim2.new(1, -24, 0, 20), Enum.Font.GothamBold, 18, Color3.fromRGB(98, 255, 111))
-
+	ui.TitleLabel = titleLabel
 	ui.MissionLabel = missionLabel
 	ui.ProgressLabel = progressLabel
 	return ui
 end
 
-local function updateMissionUI(ui, missionTitle, missionProgress, missionTarget, missionComplete)
+local function updateMissionUI(ui, chapterTitle, missionTitle, missionProgress, missionTarget, missionComplete, campaignComplete)
+	if ui.TitleLabel then
+		ui.TitleLabel.Text = chapterTitle.Value ~= "" and string.upper(chapterTitle.Value) or "CURRENT MISSION"
+	end
+
+	if ui.ChapterLabel then
+		ui.ChapterLabel.Text = chapterTitle.Value ~= "" and chapterTitle.Value or "Current Mission"
+	end
+
 	ui.MissionLabel.Text = missionTitle.Value
 
-	if missionComplete.Value then
+	if campaignComplete.Value then
+		ui.ProgressLabel.Text = "Chapter Cleared"
+		ui.ProgressLabel.TextColor3 = Color3.fromRGB(255, 221, 92)
+	elseif missionComplete.Value then
 		ui.ProgressLabel.Text = "Complete!"
 		ui.ProgressLabel.TextColor3 = Color3.fromRGB(255, 221, 92)
 	else
@@ -143,7 +158,7 @@ local function updateMissionUI(ui, missionTitle, missionProgress, missionTarget,
 	end
 end
 
-local function updateWaveUI(ui, waveNumber, aliveEnemies, targetEnemies, status, activeCivilians, totalCivilians, lostThisWave, maxLosses, protectionStatus)
+local function updateWaveUI(ui, waveNumber, aliveEnemies, targetEnemies, status, activeCivilians, totalCivilians, lostThisWave, protectionStatus)
 	if not ui.IsMobile then
 		return
 	end
@@ -158,24 +173,25 @@ local function updateWaveUI(ui, waveNumber, aliveEnemies, targetEnemies, status,
 		ui.WaveStatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	end
 
-	ui.CivilianLabel.Text = string.format("Civ %d/%d  Loss %d/%d", activeCivilians.Value, totalCivilians.Value, lostThisWave.Value, maxLosses.Value)
+	ui.CivilianLabel.Text = string.format("Civ %d/%d  Lost %d", activeCivilians.Value, totalCivilians.Value, lostThisWave.Value)
 
-	if lostThisWave.Value <= 0 then
+	if activeCivilians.Value > math.floor(totalCivilians.Value * 0.5) then
 		ui.CivilianLabel.TextColor3 = Color3.fromRGB(142, 255, 156)
-	elseif lostThisWave.Value < maxLosses.Value then
+	elseif activeCivilians.Value > 1 then
 		ui.CivilianLabel.TextColor3 = Color3.fromRGB(255, 214, 102)
 	else
 		ui.CivilianLabel.TextColor3 = Color3.fromRGB(255, 110, 110)
 	end
-
 end
 
 local function connectMissionData()
 	local missionFolder = player:WaitForChild("MissionData")
+	local chapterTitle = missionFolder:WaitForChild("ChapterTitle")
 	local missionTitle = missionFolder:WaitForChild("MissionTitle")
 	local missionProgress = missionFolder:WaitForChild("MissionProgress")
 	local missionTarget = missionFolder:WaitForChild("MissionTarget")
 	local missionComplete = missionFolder:WaitForChild("MissionComplete")
+	local campaignComplete = missionFolder:WaitForChild("CampaignComplete")
 	local ui = createMissionGui()
 	local previousMissionComplete = missionComplete.Value
 
@@ -188,7 +204,6 @@ local function connectMissionData()
 	local activeCivilians
 	local totalCivilians
 	local lostThisWave
-	local maxLosses
 	local protectionStatus
 
 	if ui.IsMobile then
@@ -201,16 +216,16 @@ local function connectMissionData()
 		activeCivilians = protectionState:WaitForChild("ActiveCivilians")
 		totalCivilians = protectionState:WaitForChild("TotalCivilians")
 		lostThisWave = protectionState:WaitForChild("LostThisWave")
-		maxLosses = protectionState:WaitForChild("MaxLosses")
 		protectionStatus = protectionState:WaitForChild("Status")
 	end
 
 	local function refreshMission()
+		missionRefreshQueued = false
 		if ui.MissionLabel.Parent and ui.ProgressLabel.Parent then
-			updateMissionUI(ui, missionTitle, missionProgress, missionTarget, missionComplete)
+			updateMissionUI(ui, chapterTitle, missionTitle, missionProgress, missionTarget, missionComplete, campaignComplete)
 		end
 
-		if missionComplete.Value and not previousMissionComplete and ui.RewardBanner then
+		if missionComplete.Value and not previousMissionComplete and ui.RewardBanner and not campaignComplete.Value then
 			ui.RewardBanner.Visible = true
 			ui.RewardBanner.Position = ui.IsMobile and UDim2.new(0.5, 0, 0, 84) or UDim2.new(0.5, 0, 0, 104)
 			ui.RewardBanner.BackgroundTransparency = 0.12
@@ -247,29 +262,49 @@ local function connectMissionData()
 	end
 
 	local function refreshWave()
+		waveRefreshQueued = false
 		if ui.IsMobile and ui.WaveLabel.Parent and ui.WaveStatusLabel.Parent then
-			updateWaveUI(ui, waveNumber, aliveEnemies, targetEnemies, status, activeCivilians, totalCivilians, lostThisWave, maxLosses, protectionStatus)
+			updateWaveUI(ui, waveNumber, aliveEnemies, targetEnemies, status, activeCivilians, totalCivilians, lostThisWave, protectionStatus)
 		end
+	end
+
+	local function queueMissionRefresh()
+		if missionRefreshQueued then
+			return
+		end
+
+		missionRefreshQueued = true
+		task.defer(refreshMission)
+	end
+
+	local function queueWaveRefresh()
+		if waveRefreshQueued then
+			return
+		end
+
+		waveRefreshQueued = true
+		task.defer(refreshWave)
 	end
 
 	refreshMission()
 	refreshWave()
 
-	missionTitle.Changed:Connect(refreshMission)
-	missionProgress.Changed:Connect(refreshMission)
-	missionTarget.Changed:Connect(refreshMission)
-	missionComplete.Changed:Connect(refreshMission)
+	chapterTitle.Changed:Connect(queueMissionRefresh)
+	missionTitle.Changed:Connect(queueMissionRefresh)
+	missionProgress.Changed:Connect(queueMissionRefresh)
+	missionTarget.Changed:Connect(queueMissionRefresh)
+	missionComplete.Changed:Connect(queueMissionRefresh)
+	campaignComplete.Changed:Connect(queueMissionRefresh)
 
 	if ui.IsMobile then
-		waveNumber.Changed:Connect(refreshWave)
-		aliveEnemies.Changed:Connect(refreshWave)
-		targetEnemies.Changed:Connect(refreshWave)
-		status.Changed:Connect(refreshWave)
-		activeCivilians.Changed:Connect(refreshWave)
-		totalCivilians.Changed:Connect(refreshWave)
-		lostThisWave.Changed:Connect(refreshWave)
-		maxLosses.Changed:Connect(refreshWave)
-		protectionStatus.Changed:Connect(refreshWave)
+		waveNumber.Changed:Connect(queueWaveRefresh)
+		aliveEnemies.Changed:Connect(queueWaveRefresh)
+		targetEnemies.Changed:Connect(queueWaveRefresh)
+		status.Changed:Connect(queueWaveRefresh)
+		activeCivilians.Changed:Connect(queueWaveRefresh)
+		totalCivilians.Changed:Connect(queueWaveRefresh)
+		lostThisWave.Changed:Connect(queueWaveRefresh)
+		protectionStatus.Changed:Connect(queueWaveRefresh)
 	end
 end
 

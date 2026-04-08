@@ -4,63 +4,10 @@ local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
 
 local remotesFolder = ReplicatedStorage:WaitForChild("Remotes")
+local configFolder = ReplicatedStorage:WaitForChild("Config")
 local attackRemote = remotesFolder:WaitForChild("RoosterAttack")
 local hitConfirmRemote = remotesFolder:WaitForChild("RoosterHitConfirm")
-
-local ATTACKS = {
-	Peck = {
-		Damage = 24,
-		Cooldown = 0.4,
-		HitboxSize = Vector3.new(5, 4.5, 6),
-		ForwardOffset = 4.5,
-		Knockback = 55,
-		HitBurstColor = Color3.fromRGB(255, 214, 97),
-	},
-	Scratch = {
-		Damage = 14,
-		Cooldown = 0.65,
-		HitboxSize = Vector3.new(8, 4.5, 8),
-		ForwardOffset = 3.2,
-		Knockback = 32,
-		HitBurstColor = Color3.fromRGB(255, 132, 74),
-	},
-}
-
-local CHARACTER_ATTACK_MODIFIERS = {
-	Kenchi = {
-		Peck = {
-			Cooldown = 0.32,
-			Damage = 26,
-			ForwardOffset = 5.2,
-			Knockback = 48,
-			HitBurstColor = Color3.fromRGB(255, 234, 126),
-		},
-		Scratch = {
-			Cooldown = 0.58,
-			Damage = 15,
-			ForwardOffset = 3.6,
-			Knockback = 28,
-			HitBurstColor = Color3.fromRGB(255, 166, 92),
-		},
-	},
-	Chico = {
-		Peck = {
-			Cooldown = 0.48,
-			Damage = 22,
-			ForwardOffset = 4.1,
-			Knockback = 68,
-			HitBurstColor = Color3.fromRGB(255, 132, 132),
-		},
-		Scratch = {
-			Cooldown = 0.78,
-			Damage = 20,
-			HitboxSize = Vector3.new(9.5, 5, 9.5),
-			ForwardOffset = 3.4,
-			Knockback = 52,
-			HitBurstColor = Color3.fromRGB(255, 94, 94),
-		},
-	},
-}
+local AttackConfig = require(configFolder:WaitForChild("AttackConfig"))
 
 local lastAttackTimes = {}
 
@@ -69,23 +16,7 @@ local function getSelectedRooster(player)
 end
 
 local function getAttackConfig(player, attackName)
-	local baseConfig = ATTACKS[attackName]
-
-	if not baseConfig then
-		return nil
-	end
-
-	local config = table.clone(baseConfig)
-	local roosterModifiers = CHARACTER_ATTACK_MODIFIERS[getSelectedRooster(player)]
-	local attackModifiers = roosterModifiers and roosterModifiers[attackName]
-
-	if attackModifiers then
-		for key, value in pairs(attackModifiers) do
-			config[key] = value
-		end
-	end
-
-	return config
+	return AttackConfig.GetServerAttackConfig(getSelectedRooster(player), attackName)
 end
 
 local function playDemonHitGroan(demonModel, attackName)

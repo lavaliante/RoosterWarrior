@@ -7,82 +7,29 @@ local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local remotesFolder = ReplicatedStorage:WaitForChild("Remotes")
+local configFolder = ReplicatedStorage:WaitForChild("Config")
 local attackRemote = remotesFolder:WaitForChild("RoosterAttack")
 local hitConfirmRemote = remotesFolder:WaitForChild("RoosterHitConfirm")
 local playerGui = player:WaitForChild("PlayerGui")
-
-local ATTACKS = {
-	Peck = {
-		Cooldown = 0.4,
-		LungeSpeed = 52,
-		RecoverySpeed = 12,
-		CameraPunchFov = 76,
-		PulseColor = Color3.fromRGB(255, 217, 78),
-		PulseOffset = CFrame.new(0, -1.75, -3.2),
-		PulseSize = Vector3.new(0.35, 1.2, 1.2),
-		PulseExpandSize = Vector3.new(0.35, 5.5, 5.5),
-		SoundId = "rbxasset://sounds/swordlunge.wav",
-		SoundVolume = 0.85,
-		SoundPitch = 1.25,
-	},
-	Scratch = {
-		Cooldown = 0.65,
-		LungeSpeed = 24,
-		RecoverySpeed = 8,
-		CameraPunchFov = 73,
-		PulseColor = Color3.fromRGB(255, 146, 76),
-		PulseOffset = CFrame.new(0, -1.2, -2.4),
-		PulseSize = Vector3.new(0.35, 1.6, 1.6),
-		PulseExpandSize = Vector3.new(0.35, 6.8, 6.8),
-		SoundId = "rbxasset://sounds/swordslash.wav",
-		SoundVolume = 0.8,
-		SoundPitch = 1.05,
-	},
-}
-
-local CHARACTER_ATTACK_MODIFIERS = {
-	Kenchi = {
-		Peck = {
-			Cooldown = 0.32,
-			LungeSpeed = 58,
-			RecoverySpeed = 15,
-			CameraPunchFov = 77,
-			SoundPitch = 1.35,
-			PulseExpandSize = Vector3.new(0.35, 6.2, 6.2),
-		},
-		Scratch = {
-			Cooldown = 0.58,
-			LungeSpeed = 28,
-			RecoverySpeed = 10,
-			CameraPunchFov = 74,
-			SoundPitch = 1.12,
-		},
-	},
-	Chico = {
-		Peck = {
-			Cooldown = 0.48,
-			LungeSpeed = 42,
-			RecoverySpeed = 8,
-			CameraPunchFov = 74,
-			SoundPitch = 0.95,
-			PulseColor = Color3.fromRGB(255, 128, 128),
-		},
-		Scratch = {
-			Cooldown = 0.78,
-			LungeSpeed = 18,
-			RecoverySpeed = 6,
-			CameraPunchFov = 78,
-			SoundPitch = 0.82,
-			PulseColor = Color3.fromRGB(255, 98, 98),
-			PulseExpandSize = Vector3.new(0.35, 8.4, 8.4),
-		},
-	},
-}
+local AttackConfig = require(configFolder:WaitForChild("AttackConfig"))
+local MOBILE_COOLDOWN_TICK = 0.03
 
 local attackReadyTimes = {
 	Peck = 0,
 	Scratch = 0,
 }
+
+if player:GetAttribute("TutorialPeckLearned") == nil then
+	player:SetAttribute("TutorialPeckLearned", false)
+end
+
+if player:GetAttribute("TutorialScratchLearned") == nil then
+	player:SetAttribute("TutorialScratchLearned", false)
+end
+
+if player:GetAttribute("CombatTutorialComplete") == nil then
+	player:SetAttribute("CombatTutorialComplete", false)
+end
 
 local tryAttack
 local mobileButtons = {}
@@ -92,23 +39,7 @@ local function getSelectedRooster()
 end
 
 local function getAttackConfig(attackName)
-	local baseConfig = ATTACKS[attackName]
-
-	if not baseConfig then
-		return nil
-	end
-
-	local config = table.clone(baseConfig)
-	local roosterModifiers = CHARACTER_ATTACK_MODIFIERS[getSelectedRooster()]
-	local attackModifiers = roosterModifiers and roosterModifiers[attackName]
-
-	if attackModifiers then
-		for key, value in pairs(attackModifiers) do
-			config[key] = value
-		end
-	end
-
-	return config
+	return AttackConfig.GetClientAttackConfig(getSelectedRooster(), attackName)
 end
 
 local function createAttackButton(parent, name, text, position, color, size, textSize)
@@ -264,7 +195,7 @@ local function startMobileCooldown(attackName, duration)
 				break
 			end
 
-			task.wait()
+			task.wait(MOBILE_COOLDOWN_TICK)
 		end
 
 		if token ~= entry.Token then
@@ -358,6 +289,48 @@ local function setupMobileButtons()
 	scratchButton.Activated:Connect(function()
 		tryAttack("Scratch")
 	end)
+end
+
+local function setupKeyboardHint()
+	if UserInputService.TouchEnabled then
+		return
+	end
+
+	local existingGui = playerGui:FindFirstChild("AttackControlsGui")
+
+	if existingGui then
+		existingGui:Destroy()
+	end
+
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "AttackControlsGui"
+	screenGui.ResetOnSpawn = false
+	screenGui.IgnoreGuiInset = false
+	screenGui.Parent = playerGui
+
+	local hintLabel = Instance.new("TextLabel")
+	hintLabel.Name = "HintLabel"
+	hintLabel.AnchorPoint = Vector2.new(0.5, 1)
+	hintLabel.Position = UDim2.new(0.5, 0, 1, -18)
+	hintLabel.Size = UDim2.new(0, 240, 0, 22)
+	hintLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+	hintLabel.BackgroundTransparency = 0.22
+	hintLabel.BorderSizePixel = 0
+	hintLabel.Font = Enum.Font.GothamBold
+	hintLabel.Text = "LMB / F: Peck    RMB / G: Scratch"
+	hintLabel.TextColor3 = Color3.fromRGB(255, 243, 176)
+	hintLabel.TextSize = 13
+	hintLabel.Parent = screenGui
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(1, 0)
+	corner.Parent = hintLabel
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(255, 215, 90)
+	stroke.Thickness = 1.5
+	stroke.Transparency = 0.2
+	stroke.Parent = hintLabel
 end
 
 local function createAttackPulse(character, attackConfig)
@@ -599,6 +572,16 @@ tryAttack = function(attackName)
 	end
 	doLocalAttack(attackName)
 
+	if attackName == "Peck" then
+		player:SetAttribute("TutorialPeckLearned", true)
+	elseif attackName == "Scratch" then
+		player:SetAttribute("TutorialScratchLearned", true)
+	end
+
+	if player:GetAttribute("TutorialPeckLearned") and player:GetAttribute("TutorialScratchLearned") then
+		player:SetAttribute("CombatTutorialComplete", true)
+	end
+
 	local character = player.Character
 	if character then
 		local tickName = attackName .. "Tick"
@@ -618,6 +601,10 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
 		tryAttack("Peck")
 	elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
 		tryAttack("Scratch")
+	elseif input.KeyCode == Enum.KeyCode.F then
+		tryAttack("Peck")
+	elseif input.KeyCode == Enum.KeyCode.G then
+		tryAttack("Scratch")
 	end
 end)
 
@@ -632,3 +619,7 @@ hitConfirmRemote.OnClientEvent:Connect(function(attackName, hitPosition)
 end)
 
 setupMobileButtons()
+setupKeyboardHint()
+
+
+

@@ -8,6 +8,8 @@ if UserInputService.TouchEnabled then
 	return
 end
 
+local refreshQueued = false
+
 local function createWaveGui()
 	local playerGui = player:WaitForChild("PlayerGui")
 	local existingGui = playerGui:FindFirstChild("WaveGui")
@@ -98,11 +100,11 @@ local function connectWaveState()
 	local activeCivilians = protectionState:WaitForChild("ActiveCivilians")
 	local totalCivilians = protectionState:WaitForChild("TotalCivilians")
 	local lostThisWave = protectionState:WaitForChild("LostThisWave")
-	local maxLosses = protectionState:WaitForChild("MaxLosses")
 	local protectionStatus = protectionState:WaitForChild("Status")
 	local waveLabel, statusLabel, civilianLabel, protectionLabel = createWaveGui()
 
 	local function refresh()
+		refreshQueued = false
 		waveLabel.Text = "Wave " .. tostring(math.max(1, waveNumber.Value))
 
 		if string.find(status.Value, "Next wave", 1, true) or string.find(status.Value, "Retry", 1, true) then
@@ -114,37 +116,44 @@ local function connectWaveState()
 		end
 
 		civilianLabel.Text = string.format(
-			"Civilians %d / %d  |  Losses %d / %d",
+			"Civilians %d / %d  |  Lost %d",
 			activeCivilians.Value,
 			totalCivilians.Value,
-			lostThisWave.Value,
-			maxLosses.Value
+			lostThisWave.Value
 		)
 
-		if lostThisWave.Value <= 0 then
+		if activeCivilians.Value > math.floor(totalCivilians.Value * 0.5) then
 			civilianLabel.TextColor3 = Color3.fromRGB(142, 255, 156)
-		elseif lostThisWave.Value < maxLosses.Value then
+		elseif activeCivilians.Value > 1 then
 			civilianLabel.TextColor3 = Color3.fromRGB(255, 214, 102)
 		else
 			civilianLabel.TextColor3 = Color3.fromRGB(255, 110, 110)
 		end
 
 		protectionLabel.Text = protectionStatus.Value
-		protectionLabel.TextColor3 = lostThisWave.Value >= maxLosses.Value
+		protectionLabel.TextColor3 = activeCivilians.Value <= 1
 			and Color3.fromRGB(255, 120, 120)
 			or Color3.fromRGB(255, 244, 188)
 	end
 
+	local function queueRefresh()
+		if refreshQueued then
+			return
+		end
+
+		refreshQueued = true
+		task.defer(refresh)
+	end
+
 	refresh()
-	waveNumber.Changed:Connect(refresh)
-	aliveEnemies.Changed:Connect(refresh)
-	targetEnemies.Changed:Connect(refresh)
-	status.Changed:Connect(refresh)
-	activeCivilians.Changed:Connect(refresh)
-	totalCivilians.Changed:Connect(refresh)
-	lostThisWave.Changed:Connect(refresh)
-	maxLosses.Changed:Connect(refresh)
-	protectionStatus.Changed:Connect(refresh)
+	waveNumber.Changed:Connect(queueRefresh)
+	aliveEnemies.Changed:Connect(queueRefresh)
+	targetEnemies.Changed:Connect(queueRefresh)
+	status.Changed:Connect(queueRefresh)
+	activeCivilians.Changed:Connect(queueRefresh)
+	totalCivilians.Changed:Connect(queueRefresh)
+	lostThisWave.Changed:Connect(queueRefresh)
+	protectionStatus.Changed:Connect(queueRefresh)
 end
 
 connectWaveState()

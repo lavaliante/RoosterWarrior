@@ -36,7 +36,7 @@ AttackConfig.ServerCharacterModifiers = {
 			HitBurstColor = Color3.fromRGB(255, 166, 92),
 		},
 	},
-	Chico = {
+	Kenjuke = {
 		Peck = {
 			Cooldown = 0.48,
 			Damage = 22,
@@ -102,7 +102,7 @@ AttackConfig.ClientCharacterModifiers = {
 			SoundPitch = 1.12,
 		},
 	},
-	Chico = {
+	Kenjuke = {
 		Peck = {
 			Cooldown = 0.48,
 			LungeSpeed = 42,
@@ -145,6 +145,11 @@ function AttackConfig.GetServerAttackConfig(roosterName, attackName)
 	local characterModifiers = AttackConfig.ServerCharacterModifiers[roosterName]
 	return mergeConfig(baseConfig, characterModifiers and characterModifiers[attackName])
 end
+
+AttackConfig.ServerCharacterModifiers.Chico = AttackConfig.ServerCharacterModifiers.Kenjuke
+AttackConfig.ServerCharacterModifiers.Keijuke = AttackConfig.ServerCharacterModifiers.Kenjuke
+AttackConfig.ClientCharacterModifiers.Chico = AttackConfig.ClientCharacterModifiers.Kenjuke
+AttackConfig.ClientCharacterModifiers.Keijuke = AttackConfig.ClientCharacterModifiers.Kenjuke
 
 function AttackConfig.GetClientAttackConfig(roosterName, attackName)
 	local baseConfig = AttackConfig.ClientBase[attackName]

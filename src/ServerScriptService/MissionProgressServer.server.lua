@@ -5,41 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local MISSION_FEATHER_REWARD = 10
 local MISSION_RESET_DELAY = 2.5
 
-<<<<<<< HEAD
-local MISSION_DEFINITIONS = {
-	{
-		Id = "DefeatDemons",
-		Title = "Defeat 5 demons",
-		Target = 5,
-	},
-	{
-		Id = "ReachWave4",
-		Title = "Reach wave 4",
-		Target = 4,
-	},
-	{
-		Id = "DefeatPurpleDemon",
-		Title = "Defeat 1 PurpleDemon",
-		Target = 1,
-		EnemyType = "PurpleDemon",
-	},
-	{
-		Id = "ScratchFinisher",
-		Title = "Defeat 3 demons with Scratch",
-		Target = 3,
-		AttackName = "Scratch",
-	},
-	{
-		Id = "KeijukeHunter",
-		Title = "Defeat 2 demons as Keijuke",
-		Target = 2,
-		RoosterName = "Keijuke",
-	},
-}
-
-=======
 local chapterQuestConfig = require(ReplicatedStorage:WaitForChild("Config"):WaitForChild("ChapterQuestConfig"))
->>>>>>> f82582acfdef0bdb28aace684803feb15eafd14e
 local trackedEnemies = {}
 local waveConnections = {}
 local talkConnections = {}
@@ -208,19 +174,12 @@ local function recordKillForPlayer(player, enemyModel)
 
 	if definition.CompletionType == "KillAny" then
 		shouldCountKill = true
-<<<<<<< HEAD
-	elseif missionId.Value == "DefeatPurpleDemon" then
-		shouldCountKill = (enemyModel:GetAttribute("EnemyType") or enemyModel.Name) == "PurpleDemon"
-	elseif missionId.Value == "ScratchFinisher" then
-		shouldCountKill = enemyModel:GetAttribute("LastHitAttackName") == "Scratch"
-	elseif missionId.Value == "KeijukeHunter" then
-		shouldCountKill = player:GetAttribute("SelectedRooster") == "Keijuke"
-=======
 	elseif definition.CompletionType == "KillEnemyType" then
 		shouldCountKill = enemyType == definition.EnemyType
 	elseif definition.CompletionType == "KillWithAttack" then
 		shouldCountKill = enemyModel:GetAttribute("LastHitAttackName") == definition.AttackName
->>>>>>> f82582acfdef0bdb28aace684803feb15eafd14e
+	elseif definition.CompletionType == "KillAsRooster" then
+		shouldCountKill = player:GetAttribute("SelectedRooster") == definition.RoosterName
 	end
 
 	if not shouldCountKill then

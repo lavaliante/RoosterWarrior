@@ -26,10 +26,10 @@ local function createLabel(parent, name, position, size, font, textSize, textCol
 	return label
 end
 
-local function createContainer(screenGui, size, position)
+local function createContainer(screenGui, size, position, anchorPoint)
 	local container = Instance.new("Frame")
 	container.Name = "Container"
-	container.AnchorPoint = Vector2.new(1, 0)
+	container.AnchorPoint = anchorPoint or Vector2.new(1, 0)
 	container.Position = position
 	container.Size = size
 	container.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
@@ -95,7 +95,7 @@ local function createMissionGui()
 	}
 
 	if isMobile then
-		local container = createContainer(screenGui, UDim2.new(0, 176, 0, 102), UDim2.new(1, -12, 0, 14))
+		local container = createContainer(screenGui, UDim2.new(0, 182, 0, 102), UDim2.new(0, 12, 0, 68), Vector2.new(0, 0))
 
 		local chapterLabel = createLabel(container, "ChapterLabel", UDim2.new(0, 10, 0, 6), UDim2.new(1, -20, 0, 12), Enum.Font.GothamBold, 10, Color3.fromRGB(255, 221, 92))
 		local waveLabel = createLabel(container, "WaveLabel", UDim2.new(0, 10, 0, 20), UDim2.new(1, -20, 0, 14), Enum.Font.GothamBold, 12, Color3.fromRGB(255, 243, 176))

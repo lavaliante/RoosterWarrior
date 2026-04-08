@@ -34,7 +34,7 @@ local CIVILIAN_NAMES = {
 local FIRST_TALK_LINES = {
 	"The mist keeps creeping closer to the fields. Something is wrong out there.",
 	"My chickens would not settle last night. They kept staring at the forest.",
-	"The elders whisper about Kijuu, but I thought those were only stories.",
+	"The elders whisper about demons, but I thought those were only stories.",
 	"Please be careful near the farms. We heard screaming after sunset.",
 	"Black rot spread across the wheat in a single night. That is no natural blight.",
 	"If the old warrior legends are real, we may need one now more than ever.",

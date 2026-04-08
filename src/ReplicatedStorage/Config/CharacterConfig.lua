@@ -21,8 +21,8 @@ local orderedCharacters = {
 		TailTipColor = BrickColor.new("Brick yellow"),
 	},
 	{
-		Name = "Chico",
-		DisplayName = "Chico",
+		Name = "Kenjuke",
+		DisplayName = "Kenjuke",
 		Subtitle = "Heavy bruiser",
 		Stats = "+30 health, +4 damage, slower speed",
 		MobileStats = "+30 HP, +4 DMG",
@@ -47,18 +47,36 @@ local CharacterConfig = {
 	DefaultCharacterName = "Kenchi",
 	List = orderedCharacters,
 	ByName = {},
+	LegacyNames = {
+		Chico = "Kenjuke",
+		Keijuke = "Kenjuke",
+	},
 }
 
 for _, character in ipairs(orderedCharacters) do
 	CharacterConfig.ByName[character.Name] = character
 end
 
+for legacyName, canonicalName in pairs(CharacterConfig.LegacyNames) do
+	CharacterConfig.ByName[legacyName] = CharacterConfig.ByName[canonicalName]
+end
+
+function CharacterConfig.NormalizeName(characterName)
+	if type(characterName) ~= "string" then
+		return CharacterConfig.DefaultCharacterName
+	end
+
+	return CharacterConfig.LegacyNames[characterName] or characterName
+end
+
 function CharacterConfig.Get(characterName)
-	return CharacterConfig.ByName[characterName] or CharacterConfig.ByName[CharacterConfig.DefaultCharacterName]
+	local normalizedName = CharacterConfig.NormalizeName(characterName)
+	return CharacterConfig.ByName[normalizedName] or CharacterConfig.ByName[CharacterConfig.DefaultCharacterName]
 end
 
 function CharacterConfig.IsValid(characterName)
-	return CharacterConfig.ByName[characterName] ~= nil
+	local normalizedName = CharacterConfig.NormalizeName(characterName)
+	return CharacterConfig.ByName[normalizedName] ~= nil
 end
 
 return CharacterConfig

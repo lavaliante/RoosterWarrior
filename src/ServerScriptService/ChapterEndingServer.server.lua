@@ -66,14 +66,16 @@ local function createWarrior()
 
 	local docks = village:FindFirstChild("EasternDocks")
 	local dockHouse = village:FindFirstChild("DockHouse")
-	local spawnPosition
+	local spawnCFrame
 
-	if docks and docks:IsA("Model") and docks:FindFirstChild("PierMain") then
-		spawnPosition = docks.PierMain.Position + Vector3.new(-10, 2.5, 0)
+	if docks and docks:IsA("Model") and docks:FindFirstChild("EntranceMarker") then
+		spawnCFrame = CFrame.lookAt(docks.EntranceMarker.Position, Vector3.new(-8, docks.EntranceMarker.Position.Y, -8))
+	elseif docks and docks:IsA("Model") and docks:FindFirstChild("PierMain") then
+		spawnCFrame = CFrame.lookAt(docks.PierMain.Position + Vector3.new(-18, 2.5, 0), Vector3.new(-8, docks.PierMain.Position.Y + 2.5, -8))
 	elseif dockHouse and dockHouse:IsA("Model") and dockHouse:FindFirstChild("Body") then
-		spawnPosition = dockHouse.Body.Position + Vector3.new(-10, 0.5, -8)
+		spawnCFrame = CFrame.lookAt(dockHouse.Body.Position + Vector3.new(-10, 0.5, -8), dockHouse.Body.Position)
 	else
-		spawnPosition = Vector3.new(110, 8, 22)
+		spawnCFrame = CFrame.lookAt(Vector3.new(110, 8, 22), Vector3.new(98, 8, 12))
 	end
 
 	local model = Instance.new("Model")
@@ -85,7 +87,7 @@ local function createWarrior()
 	rootPart.Transparency = 1
 	rootPart.Anchored = true
 	rootPart.CanCollide = false
-	rootPart.CFrame = CFrame.new(spawnPosition)
+	rootPart.CFrame = spawnCFrame
 	rootPart.Parent = model
 
 	local torso = createPart(model, "Torso", Vector3.new(2.4, 2.8, 1.4), rootPart.CFrame * CFrame.new(0, 1.8, 0), Color3.fromRGB(74, 58, 45), Enum.Material.WoodPlanks)
@@ -126,7 +128,9 @@ local function createWarrior()
 	prompt.Triggered:Connect(function(player)
 		storyDialogueRemote:FireClient(player, {
 			Speaker = WARRIOR_NAME,
-			Text = "When you are ready, the eastern sea will carry us toward the truth of the Kijuu.",
+			Text = endingTriggered
+				and "When you are ready, the eastern sea will carry us toward the truth behind these demons."
+				or "The eastern dock is the village entrance. Hold the line here, and speak to me again when the farms are safe.",
 		})
 	end)
 
@@ -164,6 +168,8 @@ local function triggerEndingIfReady()
 end
 
 Players.PlayerAdded:Connect(function(player)
+	createWarrior()
+
 	if endingTriggered then
 		task.delay(1.5, function()
 			if player.Parent then
@@ -182,4 +188,5 @@ aliveEnemiesValue.Changed:Connect(triggerEndingIfReady)
 countdownActiveValue.Changed:Connect(triggerEndingIfReady)
 statusValue.Changed:Connect(triggerEndingIfReady)
 
+createWarrior()
 triggerEndingIfReady()

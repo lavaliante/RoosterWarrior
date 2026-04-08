@@ -10,27 +10,7 @@ local configFolder = ReplicatedStorage:WaitForChild("Config")
 local characterSelectRemote = remotesFolder:WaitForChild("CharacterSelect")
 local CharacterConfig = require(configFolder:WaitForChild("CharacterConfig"))
 local CHARACTERS = CharacterConfig.List
-
-<<<<<<< HEAD
-local CHARACTERS = {
-	{
-		Name = "Kenchi",
-		Subtitle = "Balanced fighter",
-		Stats = "Normal health, normal damage",
-		MobileStats = "Balanced",
-		Color = Color3.fromRGB(255, 221, 112),
-	},
-	{
-		Name = "Keijuke",
-		Subtitle = "Heavy bruiser",
-		Stats = "+30 health, +4 damage, slower speed",
-		MobileStats = "+30 HP, +4 DMG",
-		Color = Color3.fromRGB(255, 120, 120),
-	},
-}
-=======
 local cooldownRefreshToken = 0
->>>>>>> f82582acfdef0bdb28aace684803feb15eafd14e
 
 local function createLabel(parent, position, size, font, textSize, color, text)
 	local label = Instance.new("TextLabel")

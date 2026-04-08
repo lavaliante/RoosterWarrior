@@ -81,7 +81,7 @@ local function startAnimation(character)
 			return
 		end
 
-		if player:GetAttribute("SelectedRooster") == "Keijuke" then
+		if player:GetAttribute("SelectedRooster") == "Kenjuke" then
 			return
 		end
 

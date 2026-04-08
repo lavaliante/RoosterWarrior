@@ -112,10 +112,43 @@ local function createDock(parent, origin)
 	dock.Name = "EasternDocks"
 	dock.Parent = parent
 
-	createPart(dock, "PierMain", Vector3.new(46, 2, 10), CFrame.new(origin + Vector3.new(18, 1, 0)), Color3.fromRGB(128, 92, 59), Enum.Material.WoodPlanks)
-	createPart(dock, "PierBranch", Vector3.new(14, 2, 22), CFrame.new(origin + Vector3.new(34, 1, -8)), Color3.fromRGB(128, 92, 59), Enum.Material.WoodPlanks)
-	createPart(dock, "Boat", Vector3.new(13, 3, 6), CFrame.new(origin + Vector3.new(46, 1.6, -8)), Color3.fromRGB(109, 72, 47), Enum.Material.Wood)
-	createPart(dock, "BoatSail", Vector3.new(0.8, 8, 5), CFrame.new(origin + Vector3.new(46, 6, -8)), Color3.fromRGB(236, 233, 215), Enum.Material.Fabric)
+	createPart(dock, "HarborPlatform", Vector3.new(26, 2, 24), CFrame.new(origin + Vector3.new(-6, 1, 0)), Color3.fromRGB(128, 92, 59), Enum.Material.WoodPlanks)
+	createPart(dock, "PierMain", Vector3.new(58, 2, 12), CFrame.new(origin + Vector3.new(30, 1, 0)), Color3.fromRGB(128, 92, 59), Enum.Material.WoodPlanks)
+	createPart(dock, "PierBranchNorth", Vector3.new(18, 2, 22), CFrame.new(origin + Vector3.new(46, 1, -9)), Color3.fromRGB(128, 92, 59), Enum.Material.WoodPlanks)
+	createPart(dock, "PierBranchSouth", Vector3.new(16, 2, 18), CFrame.new(origin + Vector3.new(18, 1, 13)), Color3.fromRGB(128, 92, 59), Enum.Material.WoodPlanks)
+	createPart(dock, "DockRamp", Vector3.new(20, 1, 14), CFrame.new(origin + Vector3.new(-24, 0.55, 0)), Color3.fromRGB(195, 177, 131), Enum.Material.Sand)
+
+	createPart(dock, "GateLeftPost", Vector3.new(1.4, 9, 1.4), CFrame.new(origin + Vector3.new(-17, 4.5, -6)), Color3.fromRGB(93, 69, 48), Enum.Material.Wood)
+	createPart(dock, "GateRightPost", Vector3.new(1.4, 9, 1.4), CFrame.new(origin + Vector3.new(-17, 4.5, 6)), Color3.fromRGB(93, 69, 48), Enum.Material.Wood)
+	createPart(dock, "GateTopBeam", Vector3.new(1.4, 12, 1.4), CFrame.new(origin + Vector3.new(-17, 8.8, 0)) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(93, 69, 48), Enum.Material.Wood)
+	createPart(dock, "GateSign", Vector3.new(0.6, 10, 3.6), CFrame.new(origin + Vector3.new(-17, 7.6, 0)) * CFrame.Angles(0, math.rad(90), 0), Color3.fromRGB(176, 145, 95), Enum.Material.WoodPlanks)
+
+	for _, postOffset in ipairs({
+		Vector3.new(-6, 2.5, -10),
+		Vector3.new(-6, 2.5, 10),
+		Vector3.new(6, 2.5, -10),
+		Vector3.new(6, 2.5, 10),
+		Vector3.new(22, 2.5, -5),
+		Vector3.new(22, 2.5, 5),
+		Vector3.new(40, 2.5, -5),
+		Vector3.new(40, 2.5, 5),
+		Vector3.new(55, 2.5, -10),
+		Vector3.new(55, 2.5, 0),
+		Vector3.new(55, 2.5, 10),
+	}) do
+		createPart(dock, "Post" .. tostring(math.floor(postOffset.X * 10 + postOffset.Z)), Vector3.new(1.2, 5, 1.2), CFrame.new(origin + postOffset), Color3.fromRGB(93, 69, 48), Enum.Material.Wood)
+	end
+
+	createPart(dock, "Boat", Vector3.new(16, 3.2, 7), CFrame.new(origin + Vector3.new(60, 1.7, -10)), Color3.fromRGB(109, 72, 47), Enum.Material.Wood)
+	createPart(dock, "BoatSail", Vector3.new(0.8, 9, 5.8), CFrame.new(origin + Vector3.new(60, 6.4, -10)), Color3.fromRGB(236, 233, 215), Enum.Material.Fabric)
+	createPart(dock, "BoatMast", Vector3.new(0.5, 11, 0.5), CFrame.new(origin + Vector3.new(60, 7.2, -10)), Color3.fromRGB(117, 82, 47), Enum.Material.Wood)
+	createPart(dock, "SupplyCrateA", Vector3.new(4, 3.2, 4), CFrame.new(origin + Vector3.new(-2, 1.6, -6)), Color3.fromRGB(120, 86, 52), Enum.Material.WoodPlanks)
+	createPart(dock, "SupplyCrateB", Vector3.new(3, 2.6, 3), CFrame.new(origin + Vector3.new(4, 1.3, 7)), Color3.fromRGB(120, 86, 52), Enum.Material.WoodPlanks)
+	createPart(dock, "LanternPost", Vector3.new(0.8, 8, 0.8), CFrame.new(origin + Vector3.new(8, 4, -8)), Color3.fromRGB(93, 69, 48), Enum.Material.Wood)
+	createPart(dock, "LanternGlow", Vector3.new(1.4, 1.4, 1.4), CFrame.new(origin + Vector3.new(8, 8.3, -8)), Color3.fromRGB(255, 221, 112), Enum.Material.Neon)
+
+	createMarker(dock, "EntranceMarker", origin + Vector3.new(-10, 2, 0))
+	createMarker(dock, "PierEndMarker", origin + Vector3.new(56, 2, 0))
 	return dock
 end
 

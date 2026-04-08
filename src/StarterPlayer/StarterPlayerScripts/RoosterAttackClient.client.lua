@@ -11,79 +11,8 @@ local configFolder = ReplicatedStorage:WaitForChild("Config")
 local attackRemote = remotesFolder:WaitForChild("RoosterAttack")
 local hitConfirmRemote = remotesFolder:WaitForChild("RoosterHitConfirm")
 local playerGui = player:WaitForChild("PlayerGui")
-<<<<<<< HEAD
-
-local ATTACKS = {
-	Peck = {
-		Cooldown = 0.4,
-		LungeSpeed = 52,
-		RecoverySpeed = 12,
-		CameraPunchFov = 76,
-		PulseColor = Color3.fromRGB(255, 217, 78),
-		PulseOffset = CFrame.new(0, -1.75, -3.2),
-		PulseSize = Vector3.new(0.35, 1.2, 1.2),
-		PulseExpandSize = Vector3.new(0.35, 5.5, 5.5),
-		SoundId = "rbxasset://sounds/swordlunge.wav",
-		SoundVolume = 0.85,
-		SoundPitch = 1.25,
-	},
-	Scratch = {
-		Cooldown = 0.65,
-		LungeSpeed = 24,
-		RecoverySpeed = 8,
-		CameraPunchFov = 73,
-		PulseColor = Color3.fromRGB(255, 146, 76),
-		PulseOffset = CFrame.new(0, -1.2, -2.4),
-		PulseSize = Vector3.new(0.35, 1.6, 1.6),
-		PulseExpandSize = Vector3.new(0.35, 6.8, 6.8),
-		SoundId = "rbxasset://sounds/swordslash.wav",
-		SoundVolume = 0.8,
-		SoundPitch = 1.05,
-	},
-}
-
-local CHARACTER_ATTACK_MODIFIERS = {
-	Kenchi = {
-		Peck = {
-			Cooldown = 0.32,
-			LungeSpeed = 58,
-			RecoverySpeed = 15,
-			CameraPunchFov = 77,
-			SoundPitch = 1.35,
-			PulseExpandSize = Vector3.new(0.35, 6.2, 6.2),
-		},
-		Scratch = {
-			Cooldown = 0.58,
-			LungeSpeed = 28,
-			RecoverySpeed = 10,
-			CameraPunchFov = 74,
-			SoundPitch = 1.12,
-		},
-	},
-	Keijuke = {
-		Peck = {
-			Cooldown = 0.48,
-			LungeSpeed = 42,
-			RecoverySpeed = 8,
-			CameraPunchFov = 74,
-			SoundPitch = 0.95,
-			PulseColor = Color3.fromRGB(255, 128, 128),
-		},
-		Scratch = {
-			Cooldown = 0.78,
-			LungeSpeed = 18,
-			RecoverySpeed = 6,
-			CameraPunchFov = 78,
-			SoundPitch = 0.82,
-			PulseColor = Color3.fromRGB(255, 98, 98),
-			PulseExpandSize = Vector3.new(0.35, 8.4, 8.4),
-		},
-	},
-}
-=======
 local AttackConfig = require(configFolder:WaitForChild("AttackConfig"))
 local MOBILE_COOLDOWN_TICK = 0.03
->>>>>>> f82582acfdef0bdb28aace684803feb15eafd14e
 
 local attackReadyTimes = {
 	Peck = 0,
@@ -302,8 +231,8 @@ local function setupMobileButtons()
 	local stackFrame = Instance.new("Frame")
 	stackFrame.Name = "AttackStack"
 	stackFrame.AnchorPoint = Vector2.new(1, 1)
-	stackFrame.Position = UDim2.new(1, -132, 1, -162)
-	stackFrame.Size = UDim2.new(0, 132, 0, 132)
+	stackFrame.Position = UDim2.new(1, -18, 1, -96)
+	stackFrame.Size = UDim2.new(0, 124, 0, 124)
 	stackFrame.BackgroundTransparency = 1
 	stackFrame.Parent = screenGui
 
@@ -311,7 +240,7 @@ local function setupMobileButtons()
 	hintLabel.Name = "HintLabel"
 	hintLabel.AnchorPoint = Vector2.new(0.5, 1)
 	hintLabel.Position = UDim2.new(0.5, 0, 0, -6)
-	hintLabel.Size = UDim2.new(0, 112, 0, 18)
+	hintLabel.Size = UDim2.new(0, 104, 0, 18)
 	hintLabel.BackgroundTransparency = 1
 	hintLabel.Font = Enum.Font.GothamBold
 	hintLabel.Text = "Tap Skills"
@@ -323,20 +252,20 @@ local function setupMobileButtons()
 		stackFrame,
 		"PeckButton",
 		"Peck",
-		UDim2.new(1, 0, 0, 62),
+		UDim2.new(1, 0, 0, 58),
 		Color3.fromRGB(232, 172, 52),
-		UDim2.new(0, 58, 0, 58),
-		13
+		UDim2.new(0, 54, 0, 54),
+		12
 	)
 
 	local scratchButton, scratchCooldownCover, scratchCooldownText = createAttackButton(
 		stackFrame,
 		"ScratchButton",
 		"Scratch",
-		UDim2.new(0, 62, 1, 0),
+		UDim2.new(0, 58, 1, 0),
 		Color3.fromRGB(214, 110, 66),
-		UDim2.new(0, 64, 0, 64),
-		13
+		UDim2.new(0, 60, 0, 60),
+		12
 	)
 
 	mobileButtons.Peck = {

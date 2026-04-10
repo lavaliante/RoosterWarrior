@@ -10,6 +10,8 @@ local trackedEnemies = {}
 local waveConnections = {}
 local talkConnections = {}
 local worldWaveConnections = {}
+local playerAttributeProgressConnections = {}
+local connectPlayerAttributeProgress
 
 local waveState = Workspace:WaitForChild("WaveState")
 local globalWaveNumberValue = waveState:WaitForChild("WaveNumber")
@@ -75,6 +77,42 @@ local function getVillagersSpokenTo(player)
 	return spokenTo
 end
 
+local function getNpcInteractionCount(player, attributeName)
+	if type(attributeName) ~= "string" or attributeName == "" then
+		return 0
+	end
+
+	local value = player:GetAttribute(attributeName)
+	if type(value) == "number" then
+		return value
+	end
+	if value == true then
+		return 1
+	end
+
+	return 0
+end
+
+local function getAttributeProgressValue(player, definition)
+	if not definition then
+		return 0
+	end
+
+	if definition.CompletionType == "TalkToVillagers" then
+		return getVillagersSpokenTo(player)
+	end
+
+	if definition.CompletionType == "TalkToNpc" then
+		return getNpcInteractionCount(player, definition.NpcAttribute)
+	end
+
+	if definition.CompletionType == "PlayerAttributeCount" then
+		return getNpcInteractionCount(player, definition.AttributeName)
+	end
+
+	return 0
+end
+
 local function isTargetWaveCleared(targetWave)
 	return globalWaveNumberValue.Value >= targetWave
 		and globalAliveEnemiesValue.Value <= 0
@@ -108,11 +146,15 @@ local function applyQuestDefinition(player, definition, missionIndexValue)
 		missionData.MissionProgress.Value = math.clamp(waveValue.Value, 0, definition.Target)
 	elseif definition.CompletionType == "WaveCleared" then
 		missionData.MissionProgress.Value = isTargetWaveCleared(definition.Target) and definition.Target or 0
-	elseif definition.CompletionType == "TalkToVillagers" then
-		missionData.MissionProgress.Value = math.clamp(getVillagersSpokenTo(player), 0, definition.Target)
+	elseif definition.CompletionType == "TalkToVillagers"
+		or definition.CompletionType == "TalkToNpc"
+		or definition.CompletionType == "PlayerAttributeCount" then
+		missionData.MissionProgress.Value = math.clamp(getAttributeProgressValue(player, definition), 0, definition.Target)
 	else
 		missionData.MissionProgress.Value = 0
 	end
+
+	connectPlayerAttributeProgress(player)
 end
 
 local function advanceToNextMission(player)
@@ -250,6 +292,56 @@ local function refreshTalkMissionProgress(player)
 	end
 end
 
+local function disconnectPlayerAttributeProgressConnection(player)
+	local connection = playerAttributeProgressConnections[player]
+	if connection then
+		connection:Disconnect()
+		playerAttributeProgressConnections[player] = nil
+	end
+end
+
+local function refreshPlayerAttributeMissionProgress(player)
+	local missionData = getOrCreateMissionFolder(player)
+	if missionData.MissionComplete.Value or missionData.CampaignComplete.Value then
+		return
+	end
+
+	local definition = getQuestDefinition(missionData.MissionIndex.Value)
+	if not definition or (definition.CompletionType ~= "TalkToNpc" and definition.CompletionType ~= "PlayerAttributeCount") then
+		return
+	end
+
+	missionData.MissionProgress.Value = math.clamp(getAttributeProgressValue(player, definition), 0, missionData.MissionTarget.Value)
+	if missionData.MissionProgress.Value >= missionData.MissionTarget.Value then
+		completeMission(player)
+	end
+end
+
+connectPlayerAttributeProgress = function(player)
+	disconnectPlayerAttributeProgressConnection(player)
+
+	local missionData = getOrCreateMissionFolder(player)
+	local definition = getQuestDefinition(missionData.MissionIndex.Value)
+	if not definition then
+		return
+	end
+
+	local attributeName
+	if definition.CompletionType == "TalkToNpc" then
+		attributeName = definition.NpcAttribute
+	elseif definition.CompletionType == "PlayerAttributeCount" then
+		attributeName = definition.AttributeName
+	end
+
+	if type(attributeName) ~= "string" or attributeName == "" then
+		return
+	end
+
+	playerAttributeProgressConnections[player] = player:GetAttributeChangedSignal(attributeName):Connect(function()
+		refreshPlayerAttributeMissionProgress(player)
+	end)
+end
+
 local function trackEnemy(enemyModel)
 	if trackedEnemies[enemyModel] then
 		return
@@ -293,6 +385,15 @@ end
 
 local function onPlayerAdded(player)
 	player:SetAttribute("VillagersSpokenTo", 0)
+	if player:GetAttribute("MistClearedCount") == nil then
+		player:SetAttribute("MistClearedCount", 0)
+	end
+	if player:GetAttribute("VillagersRescuedCount") == nil then
+		player:SetAttribute("VillagersRescuedCount", 0)
+	end
+	if player:GetAttribute("TalkedToMasterKaien") == nil then
+		player:SetAttribute("TalkedToMasterKaien", 0)
+	end
 
 	local missionData = getOrCreateMissionFolder(player)
 	local definition, normalizedIndex = getQuestDefinition(missionData.MissionIndex.Value)
@@ -319,6 +420,8 @@ local function onPlayerAdded(player)
 		refreshTalkMissionProgress(player)
 	end)
 
+	connectPlayerAttributeProgress(player)
+
 	disconnectWorldWaveConnections(player)
 	worldWaveConnections[player] = {
 		globalWaveNumberValue.Changed:Connect(function()
@@ -334,6 +437,7 @@ local function onPlayerAdded(player)
 
 	refreshWaveMissionProgress(player)
 	refreshTalkMissionProgress(player)
+	refreshPlayerAttributeMissionProgress(player)
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
@@ -351,6 +455,7 @@ Players.PlayerRemoving:Connect(function(player)
 		talkConnections[player] = nil
 	end
 
+	disconnectPlayerAttributeProgressConnection(player)
 	disconnectWorldWaveConnections(player)
 end)
 

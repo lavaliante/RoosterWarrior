@@ -22,6 +22,10 @@ local function createLabel(parent, name, position, size, font, textSize, textCol
 	label.TextColor3 = textColor
 	label.TextSize = textSize
 	label.TextXAlignment = alignment or Enum.TextXAlignment.Left
+	label.TextYAlignment = Enum.TextYAlignment.Center
+	label.TextWrapped = false
+	label.TextTruncate = Enum.TextTruncate.AtEnd
+	label.ClipsDescendants = true
 	label.Parent = parent
 	return label
 end
@@ -95,7 +99,7 @@ local function createMissionGui()
 	}
 
 	if isMobile then
-		local container = createContainer(screenGui, UDim2.new(0, 182, 0, 102), UDim2.new(0, 12, 0, 68), Vector2.new(0, 0))
+		local container = createContainer(screenGui, UDim2.new(0, 182, 0, 122), UDim2.new(0, 12, 0, 68), Vector2.new(0, 0))
 
 		local chapterLabel = createLabel(container, "ChapterLabel", UDim2.new(0, 10, 0, 6), UDim2.new(1, -20, 0, 12), Enum.Font.GothamBold, 10, Color3.fromRGB(255, 221, 92))
 		local waveLabel = createLabel(container, "WaveLabel", UDim2.new(0, 10, 0, 20), UDim2.new(1, -20, 0, 14), Enum.Font.GothamBold, 12, Color3.fromRGB(255, 243, 176))
@@ -110,8 +114,11 @@ local function createMissionGui()
 		divider.Size = UDim2.new(1, -20, 0, 1)
 		divider.Parent = container
 
-		local missionLabel = createLabel(container, "MissionLabel", UDim2.new(0, 10, 0, 65), UDim2.new(1, -20, 0, 12), Enum.Font.Gotham, 10, Color3.fromRGB(255, 255, 255))
-		local progressLabel = createLabel(container, "ProgressLabel", UDim2.new(0, 10, 0, 79), UDim2.new(1, -20, 0, 12), Enum.Font.GothamBold, 11, Color3.fromRGB(98, 255, 111))
+		local missionLabel = createLabel(container, "MissionLabel", UDim2.new(0, 10, 0, 66), UDim2.new(1, -20, 0, 28), Enum.Font.Gotham, 10, Color3.fromRGB(255, 255, 255))
+		missionLabel.TextWrapped = true
+		missionLabel.TextTruncate = Enum.TextTruncate.None
+		missionLabel.TextYAlignment = Enum.TextYAlignment.Top
+		local progressLabel = createLabel(container, "ProgressLabel", UDim2.new(0, 10, 0, 96), UDim2.new(1, -20, 0, 14), Enum.Font.GothamBold, 11, Color3.fromRGB(98, 255, 111))
 
 		ui.ChapterLabel = chapterLabel
 		ui.MissionLabel = missionLabel
@@ -122,12 +129,15 @@ local function createMissionGui()
 		return ui
 	end
 
-	local container = createContainer(screenGui, UDim2.new(0, 290, 0, 110), UDim2.new(1, -20, 0, 108))
+	local container = createContainer(screenGui, UDim2.new(0, 290, 0, 132), UDim2.new(1, -20, 0, 108))
 
 	local titleLabel = createLabel(container, "TitleLabel", UDim2.new(0, 12, 0, 8), UDim2.new(1, -24, 0, 18), Enum.Font.GothamBold, 14, Color3.fromRGB(255, 243, 176))
 		
-	local missionLabel = createLabel(container, "MissionLabel", UDim2.new(0, 12, 0, 32), UDim2.new(1, -24, 0, 30), Enum.Font.Gotham, 15, Color3.fromRGB(255, 255, 255))
-	local progressLabel = createLabel(container, "ProgressLabel", UDim2.new(0, 12, 0, 74), UDim2.new(1, -24, 0, 22), Enum.Font.GothamBold, 18, Color3.fromRGB(98, 255, 111))
+	local missionLabel = createLabel(container, "MissionLabel", UDim2.new(0, 12, 0, 34), UDim2.new(1, -24, 0, 50), Enum.Font.Gotham, 15, Color3.fromRGB(255, 255, 255))
+	missionLabel.TextWrapped = true
+	missionLabel.TextTruncate = Enum.TextTruncate.None
+	missionLabel.TextYAlignment = Enum.TextYAlignment.Top
+	local progressLabel = createLabel(container, "ProgressLabel", UDim2.new(0, 12, 0, 92), UDim2.new(1, -24, 0, 22), Enum.Font.GothamBold, 18, Color3.fromRGB(98, 255, 111))
 
 	ui.TitleLabel = titleLabel
 	ui.MissionLabel = missionLabel

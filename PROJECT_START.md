@@ -32,9 +32,9 @@ The player is a fearless rooster warrior who:
 ## Narrative foundation
 The game now has a defined story direction centered on:
 - `Suncrest Village` as the opening area
-- `Kijuu` as corruption-born monsters tied to fear, anger, greed, and despair
+- `demons` as corruption-born monsters tied to fear, anger, greed, and despair
 - the lost `Rooster Warriors` order as the heroic bloodline behind the player
-- Chapter 1 focused on village defense, black mist corruption, villager rescues, and the `Mistfang Kijuu` mini-boss
+- Chapter 1 focused on village defense, black mist corruption, villager rescues, and the `Mistfang Demon` mini-boss
 
 Canonical lore text lives in `src/ReplicatedStorage/Config/GameLore.lua`.
 Implementation planning for turning that story into quests and chapter progression lives in `GAME_LORE_PLAN.md`.

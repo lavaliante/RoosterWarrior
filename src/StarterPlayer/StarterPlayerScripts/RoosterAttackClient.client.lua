@@ -231,16 +231,16 @@ local function setupMobileButtons()
 	local stackFrame = Instance.new("Frame")
 	stackFrame.Name = "AttackStack"
 	stackFrame.AnchorPoint = Vector2.new(1, 1)
-	stackFrame.Position = UDim2.new(1, -18, 1, -96)
-	stackFrame.Size = UDim2.new(0, 124, 0, 124)
+	stackFrame.Position = UDim2.new(1, -18, 1, -70)
+	stackFrame.Size = UDim2.new(0, 210, 0, 190)
 	stackFrame.BackgroundTransparency = 1
 	stackFrame.Parent = screenGui
 
 	local hintLabel = Instance.new("TextLabel")
 	hintLabel.Name = "HintLabel"
 	hintLabel.AnchorPoint = Vector2.new(0.5, 1)
-	hintLabel.Position = UDim2.new(0.5, 0, 0, -6)
-	hintLabel.Size = UDim2.new(0, 104, 0, 18)
+	hintLabel.Position = UDim2.new(0.62, 0, 0, 8)
+	hintLabel.Size = UDim2.new(0, 132, 0, 20)
 	hintLabel.BackgroundTransparency = 1
 	hintLabel.Font = Enum.Font.GothamBold
 	hintLabel.Text = "Tap Skills"
@@ -252,20 +252,20 @@ local function setupMobileButtons()
 		stackFrame,
 		"PeckButton",
 		"Peck",
-		UDim2.new(1, 0, 0, 58),
+		UDim2.new(1, 0, 1, 0),
 		Color3.fromRGB(232, 172, 52),
-		UDim2.new(0, 54, 0, 54),
-		12
+		UDim2.new(0, 86, 0, 86),
+		14
 	)
 
 	local scratchButton, scratchCooldownCover, scratchCooldownText = createAttackButton(
 		stackFrame,
 		"ScratchButton",
 		"Scratch",
-		UDim2.new(0, 58, 1, 0),
+		UDim2.new(1, -94, 1, -74),
 		Color3.fromRGB(214, 110, 66),
-		UDim2.new(0, 60, 0, 60),
-		12
+		UDim2.new(0, 72, 0, 72),
+		13
 	)
 
 	mobileButtons.Peck = {

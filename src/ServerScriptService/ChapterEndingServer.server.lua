@@ -5,22 +5,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local FINAL_WAVE = 3
 local FINAL_WAVE_STATUS = "Suncrest Village is safe for now"
 local DIALOGUE_REMOTE_NAME = "StoryDialogue"
-local WARRIOR_NAME = "Master Kaien"
-local WARRIOR_DIALOGUE = {
-	{
-		Speaker = WARRIOR_NAME,
-		Text = "You stood against the darkness when the whole village trembled. That is no small thing, young rooster.",
-	},
-	{
-		Speaker = WARRIOR_NAME,
-		Text = "The mark in your feathers carries an old bloodline. The Rooster Warriors were not erased after all.",
-	},
-	{
-		Speaker = WARRIOR_NAME,
-		Text = "Meet me at the eastern docks when you are ready. Suncrest was only the beginning.",
-	},
-}
 local DIALOGUE_STEP_DELAY = 4
+local storyDialogueConfig = require(ReplicatedStorage:WaitForChild("Config"):WaitForChild("StoryDialogueConfig"))
+local WARRIOR_NAME = storyDialogueConfig.MasterKaien.Name
+local WARRIOR_DIALOGUE = storyDialogueConfig.MasterKaien.EndingReveal
 
 local waveState = Workspace:WaitForChild("WaveState")
 local waveNumberValue = waveState:WaitForChild("WaveNumber")
@@ -39,6 +27,10 @@ end
 
 local endingTriggered = false
 local warriorModel
+
+local function getVillage()
+	return Workspace:FindFirstChild("Village") or Workspace:WaitForChild("Village", 10)
+end
 
 local function createPart(parent, name, size, cframe, color, material)
 	local part = Instance.new("Part")
@@ -59,7 +51,7 @@ local function createWarrior()
 		return warriorModel
 	end
 
-	local village = Workspace:FindFirstChild("Village")
+	local village = getVillage()
 	if not village then
 		return nil
 	end
@@ -110,6 +102,33 @@ local function createWarrior()
 	humanoid.DisplayName = WARRIOR_NAME
 	humanoid.Parent = model
 
+	local highlight = Instance.new("Highlight")
+	highlight.Name = "StoryNpcHighlight"
+	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	highlight.FillColor = Color3.fromRGB(255, 211, 94)
+	highlight.FillTransparency = 0.5
+	highlight.OutlineColor = Color3.fromRGB(255, 242, 184)
+	highlight.OutlineTransparency = 0
+	highlight.Parent = model
+
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "Nameplate"
+	billboard.Size = UDim2.new(0, 180, 0, 42)
+	billboard.StudsOffset = Vector3.new(0, 6.5, 0)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = rootPart
+
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.Name = "NameLabel"
+	nameLabel.Size = UDim2.fromScale(1, 1)
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.Font = Enum.Font.GothamBold
+	nameLabel.Text = WARRIOR_NAME
+	nameLabel.TextColor3 = Color3.fromRGB(255, 241, 176)
+	nameLabel.TextStrokeTransparency = 0.2
+	nameLabel.TextScaled = true
+	nameLabel.Parent = billboard
+
 	for _, part in ipairs({ torso, chest, head, crest, beak, leftArm, rightArm, leftLeg, rightLeg, cape, staff }) do
 		local weld = Instance.new("WeldConstraint")
 		weld.Part0 = rootPart
@@ -126,12 +145,12 @@ local function createWarrior()
 	prompt.Parent = torso
 
 	prompt.Triggered:Connect(function(player)
-		storyDialogueRemote:FireClient(player, {
-			Speaker = WARRIOR_NAME,
-			Text = endingTriggered
-				and "When you are ready, the eastern sea will carry us toward the truth behind these demons."
-				or "The eastern dock is the village entrance. Hold the line here, and speak to me again when the farms are safe.",
-		})
+		if endingTriggered then
+			player:SetAttribute("TalkedToMasterKaien", 1)
+			storyDialogueRemote:FireClient(player, storyDialogueConfig.MasterKaien.PostEndingPrompt)
+		else
+			storyDialogueRemote:FireClient(player, storyDialogueConfig.MasterKaien.PreEndingPrompt)
+		end
 	end)
 
 	model.PrimaryPart = rootPart
@@ -139,6 +158,14 @@ local function createWarrior()
 	model.Parent = Workspace
 	warriorModel = model
 	return model
+end
+
+local function ensureWarriorExists()
+	if warriorModel and warriorModel.Parent then
+		return
+	end
+
+	task.defer(createWarrior)
 end
 
 local function isFinalWaveCleared()
@@ -168,18 +195,21 @@ local function triggerEndingIfReady()
 end
 
 Players.PlayerAdded:Connect(function(player)
-	createWarrior()
+	ensureWarriorExists()
 
 	if endingTriggered then
 		task.delay(1.5, function()
 			if player.Parent then
 				createWarrior()
-				storyDialogueRemote:FireClient(player, {
-					Speaker = WARRIOR_NAME,
-					Text = "Suncrest stands because you fought. Meet me at the eastern docks.",
-				})
+				storyDialogueRemote:FireClient(player, storyDialogueConfig.MasterKaien.LateJoinGreeting)
 			end
 		end)
+	end
+end)
+
+Workspace.ChildAdded:Connect(function(instance)
+	if instance.Name == "Village" then
+		task.delay(0.2, ensureWarriorExists)
 	end
 end)
 
@@ -188,5 +218,5 @@ aliveEnemiesValue.Changed:Connect(triggerEndingIfReady)
 countdownActiveValue.Changed:Connect(triggerEndingIfReady)
 statusValue.Changed:Connect(triggerEndingIfReady)
 
-createWarrior()
+ensureWarriorExists()
 triggerEndingIfReady()

@@ -31,20 +31,9 @@ local CIVILIAN_NAMES = {
 	"Omar",
 }
 
-local FIRST_TALK_LINES = {
-	"The mist keeps creeping closer to the fields. Something is wrong out there.",
-	"My chickens would not settle last night. They kept staring at the forest.",
-	"The elders whisper about demons, but I thought those were only stories.",
-	"Please be careful near the farms. We heard screaming after sunset.",
-	"Black rot spread across the wheat in a single night. That is no natural blight.",
-	"If the old warrior legends are real, we may need one now more than ever.",
-}
-
-local REPEAT_TALK_LINES = {
-	"Stay sharp. The village is counting on you.",
-	"The roads are not safe after dark anymore.",
-	"If you head east, watch the tree line.",
-}
+local storyDialogueConfig = require(ReplicatedStorage:WaitForChild("Config"):WaitForChild("StoryDialogueConfig"))
+local FIRST_TALK_LINES = storyDialogueConfig.Civilians.FirstTalkLines
+local REPEAT_TALK_LINES = storyDialogueConfig.Civilians.RepeatTalkLines
 
 local remotesFolder = ReplicatedStorage:WaitForChild("Remotes")
 local storyDialogueRemote = remotesFolder:FindFirstChild(DIALOGUE_REMOTE_NAME)

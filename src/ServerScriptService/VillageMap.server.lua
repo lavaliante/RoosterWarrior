@@ -1,4 +1,5 @@
 local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
 
 local function createPart(parent, name, size, cframe, color, material)
 	local part = Instance.new("Part")
@@ -60,13 +61,127 @@ local function createVillageHouse(parent, name, position, bodyColor, roofColor)
 	house.Name = name
 	house.Parent = parent
 
-	createPart(house, "Body", Vector3.new(18, 12, 16), CFrame.new(position + Vector3.new(0, 6, 0)), bodyColor, Enum.Material.WoodPlanks)
-	createPart(house, "RoofBase", Vector3.new(20, 1.5, 18), CFrame.new(position + Vector3.new(0, 13.6, 0)), Color3.fromRGB(93, 69, 48), Enum.Material.WoodPlanks)
-	createWedge(house, "RoofLeft", Vector3.new(10, 4, 18), CFrame.new(position + Vector3.new(-5, 15.1, 0)) * CFrame.Angles(0, 0, math.rad(180)), roofColor, Enum.Material.WoodPlanks)
-	createWedge(house, "RoofRight", Vector3.new(10, 4, 18), CFrame.new(position + Vector3.new(5, 15.1, 0)), roofColor, Enum.Material.WoodPlanks)
-	createPart(house, "Door", Vector3.new(3.2, 6.5, 0.8), CFrame.new(position + Vector3.new(0, 3.3, -8.4)), Color3.fromRGB(89, 60, 36), Enum.Material.Wood)
-	createPart(house, "WindowLeft", Vector3.new(3, 3, 0.35), CFrame.new(position + Vector3.new(-5, 6.4, -8.45)), Color3.fromRGB(177, 225, 255), Enum.Material.Glass)
-	createPart(house, "WindowRight", Vector3.new(3, 3, 0.35), CFrame.new(position + Vector3.new(5, 6.4, -8.45)), Color3.fromRGB(177, 225, 255), Enum.Material.Glass)
+	local wallThickness = 1
+	local houseWidth = 18
+	local houseDepth = 16
+	local wallHeight = 10
+	local halfWidth = houseWidth * 0.5
+	local halfDepth = houseDepth * 0.5
+	local frontZ = -halfDepth + wallThickness * 0.5
+	local wallY = 1 + wallHeight * 0.5
+	local trimColor = Color3.fromRGB(96, 72, 48)
+	local roofColorDark = Color3.new(
+		math.max(roofColor.R * 0.72, 0),
+		math.max(roofColor.G * 0.72, 0),
+		math.max(roofColor.B * 0.72, 0)
+	)
+
+	createPart(house, "Floor", Vector3.new(houseWidth, 1, houseDepth), CFrame.new(position + Vector3.new(0, 0.5, 0)), Color3.fromRGB(136, 103, 72), Enum.Material.WoodPlanks)
+	createPart(house, "BackWall", Vector3.new(houseWidth, wallHeight, wallThickness), CFrame.new(position + Vector3.new(0, wallY, halfDepth - wallThickness * 0.5)), bodyColor, Enum.Material.Plaster)
+	createPart(house, "LeftWall", Vector3.new(wallThickness, wallHeight, houseDepth), CFrame.new(position + Vector3.new(-halfWidth + wallThickness * 0.5, wallY, 0)), bodyColor, Enum.Material.Plaster)
+	createPart(house, "RightWall", Vector3.new(wallThickness, wallHeight, houseDepth), CFrame.new(position + Vector3.new(halfWidth - wallThickness * 0.5, wallY, 0)), bodyColor, Enum.Material.Plaster)
+	createPart(house, "FrontWallLeft", Vector3.new(6.3, wallHeight, wallThickness), CFrame.new(position + Vector3.new(-5.85, wallY, frontZ)), bodyColor, Enum.Material.Plaster)
+	createPart(house, "FrontWallRight", Vector3.new(6.3, wallHeight, wallThickness), CFrame.new(position + Vector3.new(5.85, wallY, frontZ)), bodyColor, Enum.Material.Plaster)
+	createPart(house, "FrontWallTop", Vector3.new(5.4, 3, wallThickness), CFrame.new(position + Vector3.new(0, 8.5, frontZ)), bodyColor, Enum.Material.Plaster)
+	createPart(house, "RoofSeatFront", Vector3.new(houseWidth, 0.35, 0.55), CFrame.new(position + Vector3.new(0, wallHeight + 0.85, frontZ + 0.22)), trimColor, Enum.Material.WoodPlanks)
+	createPart(house, "RoofSeatBack", Vector3.new(houseWidth, 0.35, 0.55), CFrame.new(position + Vector3.new(0, wallHeight + 0.85, halfDepth - 0.22)), trimColor, Enum.Material.WoodPlanks)
+	createPart(house, "RoofSeatLeft", Vector3.new(0.55, 0.35, houseDepth), CFrame.new(position + Vector3.new(-halfWidth + 0.22, wallHeight + 0.85, 0)), trimColor, Enum.Material.WoodPlanks)
+	createPart(house, "RoofSeatRight", Vector3.new(0.55, 0.35, houseDepth), CFrame.new(position + Vector3.new(halfWidth - 0.22, wallHeight + 0.85, 0)), trimColor, Enum.Material.WoodPlanks)
+	createPart(house, "FrontEaveFill", Vector3.new(houseWidth + 0.2, 0.75, 0.5), CFrame.new(position + Vector3.new(0, wallHeight + 0.95, frontZ - 0.22)), trimColor, Enum.Material.WoodPlanks)
+
+	createPart(house, "WindowLeftFrame", Vector3.new(3.25, 3.25, 0.22), CFrame.new(position + Vector3.new(-5, 5.6, frontZ - 0.54)), trimColor, Enum.Material.WoodPlanks)
+	createPart(house, "WindowRightFrame", Vector3.new(3.25, 3.25, 0.22), CFrame.new(position + Vector3.new(5, 5.6, frontZ - 0.54)), trimColor, Enum.Material.WoodPlanks)
+	local leftWindow = createPart(house, "WindowLeft", Vector3.new(2.6, 2.6, 0.12), CFrame.new(position + Vector3.new(-5, 5.6, frontZ - 0.72)), Color3.fromRGB(178, 221, 255), Enum.Material.Glass)
+	local rightWindow = createPart(house, "WindowRight", Vector3.new(2.6, 2.6, 0.12), CFrame.new(position + Vector3.new(5, 5.6, frontZ - 0.72)), Color3.fromRGB(178, 221, 255), Enum.Material.Glass)
+	leftWindow.Transparency = 0.1
+	rightWindow.Transparency = 0.1
+	leftWindow.Reflectance = 0.06
+	rightWindow.Reflectance = 0.06
+	leftWindow.CanCollide = false
+	rightWindow.CanCollide = false
+
+	createPart(house, "Roof", Vector3.new(houseWidth + 1.2, 1.4, houseDepth + 1.2), CFrame.new(position + Vector3.new(0, wallHeight + 1.7, 0)), roofColorDark, Enum.Material.Slate)
+
+	local doorWidth = 3.2
+	local doorHeight = 6.5
+	local doorClosedCenter = position + Vector3.new(0, 3.75, frontZ - 0.56)
+	local hingePosition = doorClosedCenter + Vector3.new(-doorWidth * 0.5, 0, 0)
+	local closedCFrame = CFrame.new(doorClosedCenter)
+	local openCFrame = CFrame.new(hingePosition) * CFrame.Angles(0, math.rad(-100), 0) * CFrame.new(doorWidth * 0.5, 0, 0)
+
+	createPart(house, "DoorFrameLeft", Vector3.new(0.5, doorHeight + 0.5, 0.28), CFrame.new(position + Vector3.new(-1.85, 3.75, frontZ - 0.52)), trimColor, Enum.Material.WoodPlanks)
+	createPart(house, "DoorFrameRight", Vector3.new(0.5, doorHeight + 0.5, 0.28), CFrame.new(position + Vector3.new(1.85, 3.75, frontZ - 0.52)), trimColor, Enum.Material.WoodPlanks)
+	createPart(house, "DoorFrameTop", Vector3.new(4.2, 0.5, 0.28), CFrame.new(position + Vector3.new(0, 7.25, frontZ - 0.52)), trimColor, Enum.Material.WoodPlanks)
+	createPart(house, "DoorThreshold", Vector3.new(4.2, 0.24, 0.42), CFrame.new(position + Vector3.new(0, 1.12, frontZ - 0.46)), trimColor, Enum.Material.WoodPlanks)
+
+	local door = createPart(house, "Door", Vector3.new(doorWidth, doorHeight, 0.35), closedCFrame, Color3.fromRGB(95, 61, 38), Enum.Material.Wood)
+	door.CanCollide = true
+	local doorHandle = createPart(house, "DoorHandle", Vector3.new(0.18, 0.18, 0.18), closedCFrame * CFrame.new(1.15, 0.1, -0.32), Color3.fromRGB(215, 178, 87), Enum.Material.Metal)
+	doorHandle.CanCollide = false
+	local handleWeld = Instance.new("WeldConstraint")
+	handleWeld.Part0 = door
+	handleWeld.Part1 = doorHandle
+	handleWeld.Parent = doorHandle
+
+	local lightAnchor = Instance.new("Part")
+	lightAnchor.Name = "InteriorLightAnchor"
+	lightAnchor.Size = Vector3.new(0.4, 0.4, 0.4)
+	lightAnchor.CFrame = CFrame.new(position + Vector3.new(0, 9.8, 0))
+	lightAnchor.Transparency = 1
+	lightAnchor.Anchored = true
+	lightAnchor.CanCollide = false
+	lightAnchor.CanQuery = false
+	lightAnchor.CanTouch = false
+	lightAnchor.Parent = house
+
+	local pointLight = Instance.new("PointLight")
+	pointLight.Name = "InteriorLight"
+	pointLight.Color = Color3.fromRGB(255, 232, 190)
+	pointLight.Brightness = 2.4
+	pointLight.Range = 18
+	pointLight.Shadows = false
+	pointLight.Parent = lightAnchor
+
+	local clickDetector = Instance.new("ClickDetector")
+	clickDetector.MaxActivationDistance = 12
+	clickDetector.Parent = door
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "DoorPrompt"
+	prompt.ActionText = "Open"
+	prompt.ObjectText = name
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = door
+
+	local isOpen = false
+	local tweenInfo = TweenInfo.new(0.28, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	local activeTween
+
+	local function setDoorOpen(open)
+		isOpen = open
+		door.CanCollide = not open
+		prompt.ActionText = open and "Close" or "Open"
+
+		if activeTween then
+			activeTween:Cancel()
+		end
+
+		activeTween = TweenService:Create(door, tweenInfo, {
+			CFrame = open and openCFrame or closedCFrame,
+		})
+		activeTween:Play()
+	end
+
+	clickDetector.MouseClick:Connect(function()
+		setDoorOpen(not isOpen)
+	end)
+
+	prompt.Triggered:Connect(function()
+		setDoorOpen(not isOpen)
+	end)
+
 	return house
 end
 
@@ -105,6 +220,34 @@ local function createMarketStall(parent, name, position, awningColor)
 	createPart(stall, "RightPost", Vector3.new(0.8, 5.6, 0.8), CFrame.new(position + Vector3.new(3.5, 2.8, -1.9)), Color3.fromRGB(94, 66, 43), Enum.Material.Wood)
 	createPart(stall, "Awning", Vector3.new(10, 0.8, 6.5), CFrame.new(position + Vector3.new(0, 5.8, -1.7)), awningColor, Enum.Material.Fabric)
 	return stall
+end
+
+local function createSignpost(parent, name, position, boardTextFacingRight)
+	local sign = Instance.new("Model")
+	sign.Name = name
+	sign.Parent = parent
+
+	createPart(sign, "Post", Vector3.new(1, 8, 1), CFrame.new(position + Vector3.new(0, 4, 0)), Color3.fromRGB(101, 72, 46), Enum.Material.Wood)
+	local board = createPart(sign, "Board", Vector3.new(8, 3.8, 0.6), CFrame.new(position + Vector3.new(0, 7.2, 0)), Color3.fromRGB(186, 151, 97), Enum.Material.WoodPlanks)
+
+	local surfaceGui = Instance.new("SurfaceGui")
+	surfaceGui.Name = "LabelGui"
+	surfaceGui.Face = boardTextFacingRight and Enum.NormalId.Right or Enum.NormalId.Left
+	surfaceGui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	surfaceGui.PixelsPerStud = 40
+	surfaceGui.Parent = board
+
+	local textLabel = Instance.new("TextLabel")
+	textLabel.Name = "Label"
+	textLabel.Size = UDim2.fromScale(1, 1)
+	textLabel.BackgroundTransparency = 1
+	textLabel.Font = Enum.Font.GothamBold
+	textLabel.Text = "EASTERN DOCKS ->"
+	textLabel.TextColor3 = Color3.fromRGB(72, 46, 23)
+	textLabel.TextScaled = true
+	textLabel.Parent = surfaceGui
+
+	return sign
 end
 
 local function createDock(parent, origin)
@@ -205,6 +348,7 @@ createVillageHouse(village, "DockHouse", Vector3.new(92, 6.8, 26), Color3.fromRG
 
 createMarketStall(village, "FruitStall", Vector3.new(28, 6.8, -14), Color3.fromRGB(217, 91, 59))
 createMarketStall(village, "TraderStall", Vector3.new(30, 6.8, 8), Color3.fromRGB(212, 175, 83))
+createSignpost(village, "DockSignpost", Vector3.new(46, 6.8, 24), true)
 
 createField(village, "WestFarm", Vector3.new(-134, 6.8, 30), Vector3.new(60, 1, 48), Color3.fromRGB(209, 190, 92))
 createField(village, "SouthFarm", Vector3.new(-58, 6.8, 96), Vector3.new(70, 1, 38), Color3.fromRGB(186, 211, 103))
@@ -213,7 +357,7 @@ createFenceLine(village, "WestFarmFenceB", Vector3.new(-102, 6.8, 2), Vector3.ne
 createFenceLine(village, "SouthFarmFenceA", Vector3.new(-96, 6.8, 72), Vector3.new(-18, 6.8, 72), 14)
 createFenceLine(village, "SouthFarmFenceB", Vector3.new(-96, 6.8, 120), Vector3.new(-18, 6.8, 120), 14)
 
-createDock(village, Vector3.new(102, 0, 26))
+createDock(village, Vector3.new(102, 5.8, 26))
 
 createPalmTree(village, "Palm1", Vector3.new(-170, 0, -72), 18)
 createPalmTree(village, "Palm2", Vector3.new(-116, 1, -104), 17)
@@ -247,6 +391,14 @@ spawnFolder.Parent = village
 local farmDemonSpawnFolder = Instance.new("Folder")
 farmDemonSpawnFolder.Name = "FarmDemonSpawnPoints"
 farmDemonSpawnFolder.Parent = village
+
+local mistMarkerFolder = Instance.new("Folder")
+mistMarkerFolder.Name = "MistObjectiveMarkers"
+mistMarkerFolder.Parent = village
+
+local rescueMarkerFolder = Instance.new("Folder")
+rescueMarkerFolder.Name = "RescueObjectiveMarkers"
+rescueMarkerFolder.Parent = village
 
 local waypointPositions = {
 	Vector3.new(-70, 8.6, -10),
@@ -293,4 +445,23 @@ local farmDemonSpawnPositions = {
 
 for index, position in ipairs(farmDemonSpawnPositions) do
 	createMarker(farmDemonSpawnFolder, "FarmSpawn" .. tostring(index), position)
+end
+
+local mistObjectivePositions = {
+	Vector3.new(-128, 7.2, 22),
+	Vector3.new(-92, 7.2, 88),
+	Vector3.new(18, 7.2, 58),
+}
+
+for index, position in ipairs(mistObjectivePositions) do
+	createMarker(mistMarkerFolder, "MistMarker" .. tostring(index), position)
+end
+
+local rescueObjectivePositions = {
+	Vector3.new(82, 7.2, -18),
+	Vector3.new(108, 7.2, 74),
+}
+
+for index, position in ipairs(rescueObjectivePositions) do
+	createMarker(rescueMarkerFolder, "RescueMarker" .. tostring(index), position)
 end

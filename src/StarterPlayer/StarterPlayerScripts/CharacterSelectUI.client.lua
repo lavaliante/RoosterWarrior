@@ -57,19 +57,49 @@ local function createToggleButton(parent, name, text, position, color)
 	return button
 end
 
-local function setPanelOpen(panel, openPosition, closedPosition, open)
-	panel.Visible = true
-	panel.Position = open and closedPosition or openPosition
+local function createOverlay(screenGui)
+	local overlay = Instance.new("TextButton")
+	overlay.Name = "Overlay"
+	overlay.Size = UDim2.fromScale(1, 1)
+	overlay.Position = UDim2.fromScale(0, 0)
+	overlay.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+	overlay.BackgroundTransparency = 1
+	overlay.BorderSizePixel = 0
+	overlay.Text = ""
+	overlay.AutoButtonColor = false
+	overlay.Visible = false
+	overlay.Parent = screenGui
 
-	local tween = TweenService:Create(panel, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		Position = open and openPosition or closedPosition,
+	return overlay
+end
+
+local function setOverlayOpen(overlay, panel, open, toggleButton)
+	overlay.Visible = true
+	panel.Visible = true
+
+	local overlayTween = TweenService:Create(overlay, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		BackgroundTransparency = open and 0.28 or 1,
+	})
+	local panelTween = TweenService:Create(panel, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		BackgroundTransparency = open and 0.08 or 1,
+		Size = open and panel:GetAttribute("OpenSize") or panel:GetAttribute("ClosedSize"),
 	})
 
-	tween:Play()
+	overlayTween:Play()
+	panelTween:Play()
+
+	if toggleButton then
+		toggleButton.Rotation = open and -12 or 0
+	end
 
 	if not open then
-		tween.Completed:Once(function()
-			panel.Visible = false
+		panelTween.Completed:Once(function()
+			if panel.Parent then
+				panel.Visible = false
+			end
+			if overlay.Parent then
+				overlay.Visible = false
+			end
 		end)
 	end
 end
@@ -117,18 +147,21 @@ local function createCharacterGui()
 	screenGui.IgnoreGuiInset = false
 	screenGui.Parent = playerGui
 
+	local overlay = createOverlay(screenGui)
 	local container = Instance.new("Frame")
 	container.Name = "Container"
-	container.AnchorPoint = isMobile and Vector2.new(1, 0) or Vector2.new(1, 1)
-	local openPosition = isMobile and UDim2.new(1, -12, 0, 146) or UDim2.new(1, -20, 1, -36)
-	local closedPosition = isMobile and UDim2.new(1, 176, 0, 146) or openPosition
-	container.Position = openPosition
-	container.Size = isMobile and UDim2.new(0, 164, 0, 160) or UDim2.new(0, 260, 0, 196)
+	container.AnchorPoint = Vector2.new(0.5, 0.5)
+	container.Position = UDim2.fromScale(0.5, 0.5)
+	local openSize = isMobile and UDim2.new(0.92, 0, 0.72, 0) or UDim2.new(0.64, 0, 0.74, 0)
+	local closedSize = isMobile and UDim2.new(0.92, 0, 0.64, 0) or UDim2.new(0.58, 0, 0.66, 0)
+	container.Size = closedSize
 	container.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	container.BackgroundTransparency = 0.15
+	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
 	container.Parent = screenGui
-	container.Visible = not isMobile
+	container.Visible = false
+	container:SetAttribute("OpenSize", openSize)
+	container:SetAttribute("ClosedSize", closedSize)
 
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(0, 12)
@@ -139,30 +172,64 @@ local function createCharacterGui()
 	stroke.Thickness = 2
 	stroke.Parent = container
 
-	local setOpen = function() end
+	local toggleButton = createToggleButton(screenGui, "RoosterToggle", "RO", UDim2.new(1, -12, 0, 96), Color3.fromRGB(255, 215, 90))
+	local isOpen = false
 
-	if isMobile then
-		local toggleButton = createToggleButton(screenGui, "RoosterToggle", "RO", UDim2.new(1, -12, 0, 96), Color3.fromRGB(255, 215, 90))
-		local isOpen = false
-		setOpen = function(open)
-			isOpen = open
-			setPanelOpen(container, openPosition, closedPosition, isOpen)
-			toggleButton.Rotation = isOpen and -12 or 0
-		end
-		toggleButton.Activated:Connect(function()
-			setOpen(not isOpen)
-		end)
+	local closeButton = Instance.new("TextButton")
+	closeButton.Name = "CloseButton"
+	closeButton.AnchorPoint = Vector2.new(1, 0)
+	closeButton.Position = UDim2.new(1, -12, 0, 12)
+	closeButton.Size = UDim2.new(0, 34, 0, 34)
+	closeButton.BackgroundColor3 = Color3.fromRGB(42, 42, 42)
+	closeButton.BackgroundTransparency = 0.12
+	closeButton.BorderSizePixel = 0
+	closeButton.Font = Enum.Font.GothamBold
+	closeButton.Text = "X"
+	closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	closeButton.TextSize = 14
+	closeButton.Parent = container
+
+	local closeCorner = Instance.new("UICorner")
+	closeCorner.CornerRadius = UDim.new(1, 0)
+	closeCorner.Parent = closeButton
+
+	local function setOpen(open)
+		isOpen = open
+		setOverlayOpen(overlay, container, open, toggleButton)
 	end
 
-	createLabel(container, UDim2.new(0, 10, 0, 8), UDim2.new(1, -20, 0, 16), Enum.Font.GothamBold, isMobile and 12 or 14, Color3.fromRGB(255, 243, 176), "ROOSTERS")
-	createLabel(container, UDim2.new(0, 10, 0, 24), UDim2.new(1, -20, 0, 12), Enum.Font.Gotham, isMobile and 9 or 12, Color3.fromRGB(210, 210, 210), isMobile and "Tap to switch" or "Switch your fighter anytime")
+	toggleButton.Activated:Connect(function()
+		setOpen(not isOpen)
+	end)
+
+	closeButton.Activated:Connect(function()
+		setOpen(false)
+	end)
+
+	overlay.Activated:Connect(function()
+		setOpen(false)
+	end)
+
+	createLabel(container, UDim2.new(0, 18, 0, 16), UDim2.new(1, -72, 0, 22), Enum.Font.GothamBold, isMobile and 18 or 24, Color3.fromRGB(255, 243, 176), "ROOSTERS")
+	createLabel(container, UDim2.new(0, 18, 0, 42), UDim2.new(1, -72, 0, 18), Enum.Font.Gotham, isMobile and 12 or 14, Color3.fromRGB(210, 210, 210), "Switch your fighter anytime")
+
+	local scrollFrame = Instance.new("ScrollingFrame")
+	scrollFrame.Name = "ScrollFrame"
+	scrollFrame.BackgroundTransparency = 1
+	scrollFrame.BorderSizePixel = 0
+	scrollFrame.Position = UDim2.new(0, 18, 0, 76)
+	scrollFrame.Size = UDim2.new(1, -36, 1, -94)
+	scrollFrame.ScrollBarThickness = isMobile and 5 or 7
+	scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+	scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	scrollFrame.Parent = container
 
 	local listFrame = Instance.new("Frame")
 	listFrame.Name = "ListFrame"
 	listFrame.BackgroundTransparency = 1
-	listFrame.Position = UDim2.new(0, 10, 0, isMobile and 40 or 56)
-	listFrame.Size = UDim2.new(1, -20, 1, isMobile and -48 or -68)
-	listFrame.Parent = container
+	listFrame.Size = UDim2.new(1, -4, 0, 0)
+	listFrame.AutomaticSize = Enum.AutomaticSize.Y
+	listFrame.Parent = scrollFrame
 
 	local layout = Instance.new("UIListLayout")
 	layout.Padding = UDim.new(0, isMobile and 6 or 10)

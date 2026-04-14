@@ -109,6 +109,7 @@ local function createWarrior()
 	highlight.FillTransparency = 0.5
 	highlight.OutlineColor = Color3.fromRGB(255, 242, 184)
 	highlight.OutlineTransparency = 0
+	highlight.Enabled = false
 	highlight.Parent = model
 
 	local billboard = Instance.new("BillboardGui")
@@ -124,7 +125,7 @@ local function createWarrior()
 	nameLabel.BackgroundTransparency = 1
 	nameLabel.Font = Enum.Font.GothamBold
 	nameLabel.Text = WARRIOR_NAME
-	nameLabel.TextColor3 = Color3.fromRGB(255, 241, 176)
+	nameLabel.TextColor3 = Color3.fromRGB(210, 210, 200)
 	nameLabel.TextStrokeTransparency = 0.2
 	nameLabel.TextScaled = true
 	nameLabel.Parent = billboard
@@ -184,6 +185,24 @@ local function playEndingDialogue()
 	end
 end
 
+local function activateKaienHighlight()
+	if not warriorModel or not warriorModel.Parent then
+		return
+	end
+
+	local highlight = warriorModel:FindFirstChildOfClass("Highlight")
+	if highlight then
+		highlight.Enabled = true
+	end
+
+	local rootPart = warriorModel.PrimaryPart
+	local nameplate = rootPart and rootPart:FindFirstChildOfClass("BillboardGui")
+	local nameLabel = nameplate and nameplate:FindFirstChild("NameLabel")
+	if nameLabel then
+		nameLabel.TextColor3 = Color3.fromRGB(255, 241, 176)
+	end
+end
+
 local function triggerEndingIfReady()
 	if endingTriggered or not isFinalWaveCleared() then
 		return
@@ -194,8 +213,36 @@ local function triggerEndingIfReady()
 	task.spawn(playEndingDialogue)
 end
 
+local function watchPlayerQuestProgress(player)
+	task.defer(function()
+		if not player.Parent then
+			return
+		end
+
+		local missionData = player:WaitForChild("MissionData", 30)
+		if not missionData then
+			return
+		end
+
+		local missionIndex = missionData:WaitForChild("MissionIndex", 30)
+		if not missionIndex then
+			return
+		end
+
+		local function checkKaienHighlight()
+			if missionIndex.Value >= 6 then
+				activateKaienHighlight()
+			end
+		end
+
+		missionIndex.Changed:Connect(checkKaienHighlight)
+		checkKaienHighlight()
+	end)
+end
+
 Players.PlayerAdded:Connect(function(player)
 	ensureWarriorExists()
+	watchPlayerQuestProgress(player)
 
 	if endingTriggered then
 		task.delay(1.5, function()
@@ -206,6 +253,10 @@ Players.PlayerAdded:Connect(function(player)
 		end)
 	end
 end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+	watchPlayerQuestProgress(player)
+end
 
 Workspace.ChildAdded:Connect(function(instance)
 	if instance.Name == "Village" then

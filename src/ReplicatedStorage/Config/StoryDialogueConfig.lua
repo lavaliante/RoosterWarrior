@@ -14,6 +14,14 @@ local StoryDialogueConfig = {
 			"If you head east, watch the tree line.",
 		},
 	},
+	StrandedVillagers = {
+		RescueLines = {
+			"Thank you! I thought the demons had me for sure.",
+			"Bless you. I could not find my way back alone.",
+			"You came just in time. Something is moving near the water.",
+			"I froze when I heard them. Thank the Rooster Warrior.",
+		},
+	},
 	MasterKaien = {
 		Name = "Master Kaien",
 		PreEndingPrompt = {
